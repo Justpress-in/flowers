@@ -40,6 +40,10 @@ function tagColor(tag) {
     wedding: 'blue',
     bespoke: 'orange',
     personalised: 'orange',
+    corporate: 'blue',
+    exotic: 'blue',
+    aromatic: 'green',
+    birthday: 'orange',
   };
   return map[tag] || 'green';
 }
