@@ -3,8 +3,9 @@
 .admin-header {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: white;
-  padding: 2.5rem 0;
+  padding: 3rem 0;
 }
+.admin-header-inner h1 { display: flex; align-items: center; gap: 0.6rem; }
 .admin-header-inner h1 { font-size: 2rem; margin-bottom: 0.25rem; }
 .admin-header-inner p { opacity: 0.85; font-size: 0.9rem; }
 
