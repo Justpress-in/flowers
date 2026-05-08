@@ -72,8 +72,9 @@ export default function ProductDetailPage() {
     const { cardName, cardNumber, expiry, cvv } = paymentForm;
     if (!cardName || !cardNumber || !expiry || !cvv) { alert('Please fill all payment details.'); return; }
 
+    const orderId = 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
     const order = {
-      id: 'ORD-' + Date.now(),
+      id: orderId,
       productId: product.id,
       productName: product.name,
       storeId: selectedStore,
