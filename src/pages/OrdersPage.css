@@ -1,4 +1,4 @@
-.orders-page { padding: 2.5rem 0 5rem; }
+.orders-page { padding: 3rem 0 6rem; }
 
 .orders-empty {
   display: flex;
@@ -13,7 +13,7 @@
 .orders-empty-inner h2 { font-size: 1.6rem; margin-bottom: 0.5rem; }
 .orders-empty-inner p { color: var(--text-muted); margin-bottom: 1.5rem; }
 
-.orders-list { display: flex; flex-direction: column; gap: 1.25rem; }
+.orders-list { display: flex; flex-direction: column; gap: 1.5rem; }
 
 .order-card {
   background: white;
