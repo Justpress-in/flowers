@@ -90,10 +90,13 @@
   color: var(--text);
 }
 .cat-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   box-shadow: var(--shadow-hover);
   border-color: var(--primary);
 }
+.cat-flowers:hover { border-color: #e11d48; }
+.cat-gifts:hover   { border-color: #7c3aed; }
+.cat-parties:hover { border-color: #d97706; }
 .cat-flowers { border-top: 4px solid #e11d48; }
 .cat-gifts   { border-top: 4px solid #7c3aed; }
 .cat-parties { border-top: 4px solid #d97706; }
