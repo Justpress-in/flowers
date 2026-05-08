@@ -79,7 +79,7 @@ export default function AdminPage() {
     }
     const product = {
       ...form,
-      id: editingId || 'p-' + Date.now(),
+      id: editingId || 'p-' + Math.random().toString(36).substr(2, 8),
       tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       availableColors: form.availableColors.split(',').map(c => c.trim()).filter(Boolean),
     };
