@@ -319,7 +319,7 @@
   text-decoration: none;
   color: var(--text);
 }
-.cp-card:hover { transform: translateY(-5px); box-shadow: 0 12px 36px rgba(0,0,0,0.13); }
+.cp-card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(0,0,0,0.13); }
 
 .cp-card-img-wrap {
   position: relative;
