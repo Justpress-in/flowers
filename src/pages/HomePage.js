@@ -13,7 +13,7 @@ export default function HomePage() {
   const { state } = useApp();
 
   const featured = state.products.filter(p =>
-    p.tags.includes('bestseller') || p.tags.includes('premium')
+    p.tags.includes('bestseller') || p.tags.includes('premium') || p.tags.includes('bespoke')
   ).slice(0, 3);
 
   const categories = [
