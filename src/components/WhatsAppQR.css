@@ -1,0 +1,97 @@
+.wa-section { margin: 3rem 0; }
+
+.wa-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 2rem;
+  align-items: center;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  border-radius: 18px;
+  padding: 2.5rem 2.5rem;
+  color: white;
+  box-shadow: 0 8px 32px rgba(37,211,102,0.25);
+}
+
+.wa-icon-wrap {
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wa-text h3 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.wa-text p {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+  max-width: 400px;
+}
+
+.wa-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  color: #128c7e;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.wa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+
+.wa-call-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.wa-call-btn:hover { background: rgba(255,255,255,0.28); }
+
+.wa-qr-wrap {
+  text-align: center;
+  flex-shrink: 0;
+}
+.wa-qr {
+  width: 140px;
+  height: 140px;
+  border-radius: 12px;
+  background: white;
+  padding: 4px;
+  display: block;
+}
+.wa-qr-label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.4rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .wa-card { grid-template-columns: 1fr; text-align: center; padding: 2rem 1.5rem; }
+  .wa-icon-wrap { margin: 0 auto; }
+  .wa-actions { justify-content: center; }
+  .wa-qr-wrap { display: none; }
+}

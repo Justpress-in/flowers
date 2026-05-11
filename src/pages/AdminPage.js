@@ -3,12 +3,14 @@ import { useApp } from '../context/AppContext';
 import {
   Package, Store, ClipboardList,
   Plus, Pencil, Trash2, X, Flower2, Gift, PartyPopper,
+  Leaf, Sparkles, MapPin, Phone, Mail,
 } from 'lucide-react';
 import './AdminPage.css';
 
 const EMPTY_PRODUCT = {
   name: '',
   category: 'flowers',
+  type: 'natural',
   description: '',
   image: '',
   tags: '',
@@ -17,6 +19,8 @@ const EMPTY_PRODUCT = {
   storeInventory: [],
 };
 
+const EMPTY_STORE = { name: '', location: '', phone: '', email: '' };
+
 export default function AdminPage() {
   const { state, dispatch } = useApp();
   const [activeTab, setActiveTab] = useState('products');
@@ -24,6 +28,10 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_PRODUCT);
   const [storeRow, setStoreRow] = useState({ storeId: '', price: '', stock: '' });
+  // store management
+  const [showStoreForm, setShowStoreForm] = useState(false);
+  const [editingStoreId, setEditingStoreId] = useState(null);
+  const [storeForm, setStoreForm] = useState(EMPTY_STORE);
 
   function openAddForm() {
     setForm(EMPTY_PRODUCT);
@@ -98,6 +106,31 @@ export default function AdminPage() {
     }
   }
 
+  // store form handlers
+  function openAddStore() { setStoreForm(EMPTY_STORE); setEditingStoreId(null); setShowStoreForm(true); }
+  function openEditStore(store) {
+    setStoreForm({ name: store.name, location: store.location, phone: store.phone || '', email: store.email || '' });
+    setEditingStoreId(store.id);
+    setShowStoreForm(true);
+  }
+  function handleStoreChange(e) {
+    const { name, value } = e.target;
+    setStoreForm(f => ({ ...f, [name]: value }));
+  }
+  function handleStoreSubmit(e) {
+    e.preventDefault();
+    if (!storeForm.name || !storeForm.location) { alert('Name and location are required.'); return; }
+    const payload = { ...storeForm, id: editingStoreId || 'store-' + Math.random().toString(36).substr(2, 6) };
+    dispatch({ type: editingStoreId ? 'UPDATE_STORE' : 'ADD_STORE', payload });
+    setShowStoreForm(false);
+    setEditingStoreId(null);
+  }
+  function deleteStore(id) {
+    if (window.confirm('Delete this store? This will not remove it from existing products.')) {
+      dispatch({ type: 'DELETE_STORE', payload: id });
+    }
+  }
+
   const categoryProducts = (cat) => state.products.filter(p => p.category === cat);
 
   return (
@@ -116,6 +149,9 @@ export default function AdminPage() {
           </button>
           <button className={`admin-tab ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>
             <Store size={16} /> Store Inventory
+          </button>
+          <button className={`admin-tab ${activeTab === 'stores' ? 'active' : ''}`} onClick={() => setActiveTab('stores')}>
+            <MapPin size={16} /> Stores
           </button>
           <button className={`admin-tab ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
             <ClipboardList size={16} /> Orders
@@ -210,6 +246,35 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* Stores Tab */}
+        {activeTab === 'stores' && (
+          <div className="admin-section">
+            <div className="admin-section-header">
+              <h2>Stores ({state.stores.length})</h2>
+              <button className="btn btn-primary" onClick={openAddStore}><Plus size={16} /> Add Store</button>
+            </div>
+            <div className="admin-stores-grid">
+              {state.stores.map(store => (
+                <div key={store.id} className="admin-store-card">
+                  <div className="admin-store-card-body">
+                    <div className="admin-store-icon"><Store size={22} strokeWidth={1.5} /></div>
+                    <div className="admin-store-info">
+                      <h3>{store.name}</h3>
+                      <p><MapPin size={12} /> {store.location}</p>
+                      {store.phone && <p><Phone size={12} /> {store.phone}</p>}
+                      {store.email && <p><Mail size={12} /> {store.email}</p>}
+                    </div>
+                  </div>
+                  <div className="admin-store-actions">
+                    <button className="btn btn-ghost" onClick={() => openEditStore(store)}><Pencil size={14} /> Edit</button>
+                    <button className="btn btn-ghost text-danger" onClick={() => deleteStore(store.id)}><Trash2 size={14} /> Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Orders Tab */}
         {activeTab === 'orders' && (
           <div className="admin-section">
@@ -239,7 +304,45 @@ export default function AdminPage() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Store Modal */}
+      {showStoreForm && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowStoreForm(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>{editingStoreId ? 'Edit Store' : 'Add New Store'}</h2>
+              <button className="modal-close" onClick={() => setShowStoreForm(false)}><X size={18} /></button>
+            </div>
+            <form className="modal-form" onSubmit={handleStoreSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Store Name *</label>
+                  <input name="name" value={storeForm.name} onChange={handleStoreChange} placeholder="e.g. Bloom Central" />
+                </div>
+                <div className="form-group">
+                  <label>Location / Address *</label>
+                  <input name="location" value={storeForm.location} onChange={handleStoreChange} placeholder="e.g. 12 Rose Street, Mumbai" />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Phone</label>
+                  <input name="phone" value={storeForm.phone} onChange={handleStoreChange} placeholder="+91 99999 99999" />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input name="email" type="email" value={storeForm.email} onChange={handleStoreChange} placeholder="store@example.com" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowStoreForm(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">{editingStoreId ? 'Save Changes' : 'Add Store'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Product Modal */}
       {showForm && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowForm(false)}>
           <div className="modal">
@@ -260,6 +363,18 @@ export default function AdminPage() {
                     <option value="gifts">Gifts</option>
                     <option value="parties">Parties & Events</option>
                   </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Product Type</label>
+                <div className="type-radio-group">
+                  {['natural', 'artificial'].map(t => (
+                    <label key={t} className={`type-radio-btn ${form.type === t ? 'active' : ''}`}>
+                      <input type="radio" name="type" value={t} checked={form.type === t} onChange={handleChange} />
+                      {t === 'natural' ? <Leaf size={14} /> : <Sparkles size={14} />}
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </label>
+                  ))}
                 </div>
               </div>
               <div className="form-group">

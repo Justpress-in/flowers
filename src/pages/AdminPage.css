@@ -240,3 +240,78 @@
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);
 }
+
+/* Product type radio */
+.type-radio-group {
+  display: flex;
+  gap: 0.75rem;
+}
+.type-radio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.2rem;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.type-radio-btn input[type="radio"] { display: none; }
+.type-radio-btn.active { border-color: var(--primary); color: var(--primary); background: #fff5f0; font-weight: 600; }
+.type-radio-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+/* Stores grid */
+.admin-stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.admin-store-card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.admin-store-card:hover { box-shadow: var(--shadow-hover); }
+
+.admin-store-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.admin-store-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary);
+  flex-shrink: 0;
+}
+
+.admin-store-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+.admin-store-info p {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.admin-store-actions {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}

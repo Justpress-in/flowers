@@ -5,9 +5,39 @@ export const categories = [
 ];
 
 export const stores = [
-  { id: 'store-1', name: 'BloomNest Downtown', location: 'Downtown, City Center' },
-  { id: 'store-2', name: 'BloomNest Westside', location: 'Westside Mall, Block 5' },
-  { id: 'store-3', name: 'BloomNest Northgate', location: 'Northgate Plaza, Highway 7' },
+  { id: 'store-1', name: 'BloomNest Downtown', location: 'Downtown, City Center', phone: '+1 555-001-0001', email: 'downtown@bloomnest.com' },
+  { id: 'store-2', name: 'BloomNest Westside', location: 'Westside Mall, Block 5', phone: '+1 555-002-0002', email: 'westside@bloomnest.com' },
+  { id: 'store-3', name: 'BloomNest Northgate', location: 'Northgate Plaza, Highway 7', phone: '+1 555-003-0003', email: 'northgate@bloomnest.com' },
+];
+
+export const banners = [
+  {
+    id: 'b1',
+    title: 'Summer Sale — Up to 30% Off',
+    subtitle: 'Fresh bouquets at unbeatable prices this season',
+    cta: 'Shop Flowers',
+    ctaLink: '/flowers',
+    bg: 'linear-gradient(135deg, #c1440e 0%, #f4a261 100%)',
+    image: 'https://images.unsplash.com/photo-1490750967868-88df5691cc71?w=600&h=400&fit=crop',
+  },
+  {
+    id: 'b2',
+    title: 'Perfect Wedding Packages',
+    subtitle: 'Bespoke floral arrangements for your special day',
+    cta: 'Explore Events',
+    ctaLink: '/parties',
+    bg: 'linear-gradient(135deg, #2d6a4f 0%, #52b788 100%)',
+    image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=600&h=400&fit=crop',
+  },
+  {
+    id: 'b3',
+    title: 'Gift Someone Today',
+    subtitle: 'Curated hampers, chocolates & scented candles',
+    cta: 'Browse Gifts',
+    ctaLink: '/gifts',
+    bg: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+    image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=600&h=400&fit=crop',
+  },
 ];
 
 export const initialProducts = [
@@ -15,6 +45,7 @@ export const initialProducts = [
     id: 'p1',
     name: 'Classic Red Rose Bouquet',
     category: 'flowers',
+    type: 'natural',
     description: 'A stunning arrangement of 12 premium red roses, perfect for expressing love and admiration.',
     image: 'https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=400&h=300&fit=crop',
     tags: ['bestseller', 'romantic'],
@@ -30,6 +61,7 @@ export const initialProducts = [
     id: 'p2',
     name: 'Sunflower Bliss Arrangement',
     category: 'flowers',
+    type: 'natural',
     description: 'Bright and cheerful sunflowers mixed with baby\'s breath, bringing joy to any room.',
     image: 'https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&h=300&fit=crop',
     tags: ['seasonal', 'cheerful'],
@@ -44,6 +76,7 @@ export const initialProducts = [
     id: 'p3',
     name: 'Orchid Elegance',
     category: 'flowers',
+    type: 'natural',
     description: 'Exotic orchids in a premium vase — a sophisticated gift for discerning tastes.',
     image: 'https://images.unsplash.com/photo-1611735341450-74d61e660ad2?w=400&h=300&fit=crop',
     tags: ['premium', 'exotic'],
@@ -56,8 +89,25 @@ export const initialProducts = [
   },
   {
     id: 'p4',
+    name: 'Silk Rose Arrangement',
+    category: 'flowers',
+    type: 'artificial',
+    description: 'Lifelike silk roses that never wilt — a lasting keepsake for any occasion.',
+    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
+    tags: ['artificial', 'lasting'],
+    availableColors: ['Red', 'Pink', 'White', 'Purple'],
+    allowCustomDescription: false,
+    storeInventory: [
+      { storeId: 'store-1', price: 55, stock: 40 },
+      { storeId: 'store-2', price: 52, stock: 35 },
+      { storeId: 'store-3', price: 58, stock: 20 },
+    ],
+  },
+  {
+    id: 'p5',
     name: 'Luxury Chocolate & Flower Box',
     category: 'gifts',
+    type: 'natural',
     description: 'A curated gift box with Belgian chocolates and a mini floral arrangement.',
     image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=300&fit=crop',
     tags: ['bestseller', 'combo'],
@@ -70,9 +120,10 @@ export const initialProducts = [
     ],
   },
   {
-    id: 'p5',
+    id: 'p6',
     name: 'Personalised Hamper',
     category: 'gifts',
+    type: 'natural',
     description: 'Build your own hamper with selected gourmet items, perfect for any celebration.',
     image: 'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=400&h=300&fit=crop',
     tags: ['personalised'],
@@ -84,9 +135,10 @@ export const initialProducts = [
     ],
   },
   {
-    id: 'p6',
+    id: 'p7',
     name: 'Scented Candle Set',
     category: 'gifts',
+    type: 'artificial',
     description: 'Three artisan soy candles in rose, lavender, and sandalwood scents.',
     image: 'https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=400&h=300&fit=crop',
     tags: ['aromatic', 'relaxing'],
@@ -98,9 +150,10 @@ export const initialProducts = [
     ],
   },
   {
-    id: 'p7',
+    id: 'p8',
     name: 'Birthday Party Decoration Pack',
     category: 'parties',
+    type: 'artificial',
     description: 'Complete decoration kit: balloons, streamers, table centrepiece, and floral arch.',
     image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=400&h=300&fit=crop',
     tags: ['birthday', 'complete-pack'],
@@ -112,9 +165,10 @@ export const initialProducts = [
     ],
   },
   {
-    id: 'p8',
+    id: 'p9',
     name: 'Wedding Floral Package',
     category: 'parties',
+    type: 'natural',
     description: 'Bridal bouquet, centerpieces, and venue flowers — bespoke wedding floristry.',
     image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=300&fit=crop',
     tags: ['wedding', 'bespoke', 'premium'],
@@ -126,9 +180,10 @@ export const initialProducts = [
     ],
   },
   {
-    id: 'p9',
+    id: 'p10',
     name: 'Corporate Event Florals',
     category: 'parties',
+    type: 'natural',
     description: 'Professional floral arrangements for conferences, launches, and corporate dining.',
     image: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop',
     tags: ['corporate', 'professional'],
