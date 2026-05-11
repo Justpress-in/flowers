@@ -7,13 +7,13 @@ import {
   Plus, Pencil, Trash2, X, Flower2, Gift, PartyPopper,
   Leaf, Sparkles, Phone, Mail, LogOut, ChevronRight,
   TrendingUp, ShoppingBag, AlertTriangle, DollarSign,
-  Menu as MenuIcon,
+  Menu as MenuIcon, Image as ImageIcon,
 } from 'lucide-react';
 import './AdminPage.css';
 
 const EMPTY_PRODUCT = {
   name: '', category: 'flowers', type: 'natural',
-  description: '', image: '', tags: '', availableColors: '',
+  description: '', image: '', images: '', sizes: '', tags: '', availableColors: '',
   allowCustomDescription: true, storeInventory: [],
 };
 const EMPTY_STORE = { name: '', location: '', phone: '', email: '' };
@@ -47,7 +47,7 @@ export default function AdminPage() {
 
   /* ── product handlers ── */
   function openAddForm()        { setForm(EMPTY_PRODUCT); setEditingId(null); setShowForm(true); }
-  function openEditForm(p)      { setForm({ ...p, tags: p.tags.join(', '), availableColors: p.availableColors.join(', ') }); setEditingId(p.id); setShowForm(true); }
+  function openEditForm(p)      { setForm({ ...p, tags: p.tags.join(', '), availableColors: p.availableColors.join(', '), images: (p.images || []).join(', '), sizes: (p.sizes || []).join(', ') }); setEditingId(p.id); setShowForm(true); }
   function handleChange(e)      { const { name, value, type, checked } = e.target; setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value })); }
   function addStoreRow() {
     if (!storeRow.storeId || !storeRow.price || !storeRow.stock) return;
@@ -64,7 +64,14 @@ export default function AdminPage() {
   function handleSubmit(e) {
     e.preventDefault();
     if (!form.name || !form.description || form.storeInventory.length === 0) { alert('Fill name, description and add at least one store.'); return; }
-    const product = { ...form, id: editingId || 'p-' + Math.random().toString(36).substr(2, 8), tags: form.tags.split(',').map(t => t.trim()).filter(Boolean), availableColors: form.availableColors.split(',').map(c => c.trim()).filter(Boolean) };
+    const product = {
+      ...form,
+      id: editingId || 'p-' + Math.random().toString(36).substr(2, 8),
+      tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+      availableColors: form.availableColors.split(',').map(c => c.trim()).filter(Boolean),
+      images: form.images.split(',').map(u => u.trim()).filter(Boolean),
+      sizes: form.sizes.split(',').map(s => s.trim()).filter(Boolean),
+    };
     dispatch({ type: editingId ? 'UPDATE_PRODUCT' : 'ADD_PRODUCT', payload: product });
     setShowForm(false); setEditingId(null);
   }
@@ -414,10 +421,48 @@ export default function AdminPage() {
                 </div>
               </div>
               <div className="form-group"><label>Description *</label><textarea name="description" rows={3} value={form.description} onChange={handleChange} placeholder="Describe the product…" /></div>
-              <div className="form-group"><label>Image URL</label><input name="image" value={form.image} onChange={handleChange} placeholder="https://…" /></div>
+
+              {/* Cover photo with live preview */}
+              <div className="form-group">
+                <label>Cover Photo URL *</label>
+                <div className="prod-img-field">
+                  <div className="prod-img-preview">
+                    {form.image
+                      ? <img src={form.image} alt="cover preview" onError={e => { e.target.style.display='none'; }} />
+                      : <div className="prod-img-placeholder"><ImageIcon size={28} /></div>
+                    }
+                  </div>
+                  <input name="image" value={form.image} onChange={handleChange} placeholder="https://images.unsplash.com/…" />
+                </div>
+              </div>
+
+              {/* Gallery images */}
+              <div className="form-group">
+                <label>Gallery Images (comma-separated URLs)</label>
+                <textarea name="images" rows={2} value={form.images} onChange={handleChange} placeholder="https://…, https://…, https://…" />
+                {form.images && (
+                  <div className="prod-gallery-preview">
+                    {form.images.split(',').map(u => u.trim()).filter(Boolean).map((url, i) => (
+                      <img key={i} src={url} alt={`gallery ${i+1}`} onError={e => { e.target.style.display='none'; }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="form-row">
                 <div className="form-group"><label>Tags</label><input name="tags" value={form.tags} onChange={handleChange} placeholder="bestseller, romantic" /></div>
                 <div className="form-group"><label>Colors</label><input name="availableColors" value={form.availableColors} onChange={handleChange} placeholder="Red, Pink, White" /></div>
+              </div>
+              <div className="form-group">
+                <label>Sizes (comma-separated)</label>
+                <input name="sizes" value={form.sizes} onChange={handleChange} placeholder="Small, Medium, Large  or  S, M, L  or  30cm, 50cm, 70cm" />
+                {form.sizes && (
+                  <div className="prod-size-preview">
+                    {form.sizes.split(',').map(s => s.trim()).filter(Boolean).map(s => (
+                      <span key={s} className="prod-size-chip">{s}</span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="form-group form-check">
                 <label><input type="checkbox" name="allowCustomDescription" checked={form.allowCustomDescription} onChange={handleChange} /> Allow bespoke request</label>

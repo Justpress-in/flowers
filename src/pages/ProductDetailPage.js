@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { ShoppingBag, Gift, ArrowLeft, CheckCircle2, CreditCard } from 'lucide-react';
+import { ShoppingBag, Gift, ArrowLeft, CheckCircle2, CreditCard, Ruler } from 'lucide-react';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -12,6 +12,8 @@ export default function ProductDetailPage() {
   const product = state.products.find(p => p.id === id);
 
   const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [activeImg, setActiveImg] = useState(0);
   const [customDesc, setCustomDesc] = useState('');
   const [selectedStore, setSelectedStore] = useState('');
   const [orderType, setOrderType] = useState(null); // 'personal' | 'gift'
@@ -48,9 +50,12 @@ export default function ProductDetailPage() {
 
   const price = storeEntry ? storeEntry.price : Math.min(...product.storeInventory.map(s => s.price));
 
+  const allImages = [product.image, ...(product.images || [])].filter(Boolean);
+
   function handleOrderType(type) {
     if (!selectedStore) { alert('Please select a store first.'); return; }
     if (product.availableColors.length > 0 && !selectedColor) { alert('Please select a color.'); return; }
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) { alert('Please select a size.'); return; }
     setOrderType(type);
   }
 
@@ -81,6 +86,7 @@ export default function ProductDetailPage() {
       storeName: state.stores.find(s => s.id === selectedStore)?.name,
       type: orderType,
       color: selectedColor,
+      size: selectedSize,
       customDescription: customDesc,
       giftDetails: orderType === 'gift' ? giftForm : null,
       price,
@@ -167,12 +173,28 @@ export default function ProductDetailPage() {
       <button className="back-btn" onClick={() => navigate(-1)}><ArrowLeft size={15} /> Back</button>
 
       <div className="detail-grid">
-        {/* Left: Image */}
-        <div className="detail-img-wrap">
-          <img src={product.image} alt={product.name} />
-          <div className="detail-tags">
-            {product.tags.map(t => <span key={t} className="badge badge-orange">{t}</span>)}
+        {/* Left: Image gallery */}
+        <div className="detail-img-col">
+          <div className="detail-img-main-wrap">
+            <img src={allImages[activeImg] || product.image} alt={product.name} className="detail-img-main" />
+            <div className="detail-tags">
+              {product.tags.map(t => <span key={t} className="badge badge-orange">{t}</span>)}
+            </div>
           </div>
+          {allImages.length > 1 && (
+            <div className="detail-thumbs">
+              {allImages.map((img, i) => (
+                <button
+                  key={i}
+                  className={`detail-thumb ${activeImg === i ? 'active' : ''}`}
+                  onClick={() => setActiveImg(i)}
+                  type="button"
+                >
+                  <img src={img} alt={`view ${i + 1}`} />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Info */}
@@ -218,6 +240,25 @@ export default function ProductDetailPage() {
                     type="button"
                   >
                     {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Size Selection */}
+          {product.sizes && product.sizes.length > 0 && (
+            <div className="form-group">
+              <label><Ruler size={13} style={{ verticalAlign: 'middle', marginRight: '0.3rem' }} />Select Size *</label>
+              <div className="size-options">
+                {product.sizes.map(s => (
+                  <button
+                    key={s}
+                    className={`size-btn ${selectedSize === s ? 'selected' : ''}`}
+                    onClick={() => setSelectedSize(s)}
+                    type="button"
+                  >
+                    {s}
                   </button>
                 ))}
               </div>
