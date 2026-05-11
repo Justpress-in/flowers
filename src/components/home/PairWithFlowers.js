@@ -2,12 +2,12 @@ import React from 'react';
 import { Sparkles } from 'lucide-react';
 
 const pairs = [
-  { name: 'Flowers and Cakes', img: 'https://images.unsplash.com/photo-1557925923-33b251214f20?w=400&h=300&fit=crop' },
+  { name: 'Flowers and Cakes', img: 'https://images.unsplash.com/photo-1502920628464-9279dfc85fce?w=400&h=300&fit=crop' },
   { name: 'Flowers and Chocolates', img: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&h=300&fit=crop' },
-  { name: 'Flowers and Teddy Bears', img: 'https://images.unsplash.com/photo-1559627755-e7f62bc12eb2?w=400&h=300&fit=crop' },
-  { name: 'Flowers and Guitarist', img: 'https://images.unsplash.com/photo-1510915361894-faa8b2d18475?w=400&h=300&fit=crop' },
-  { name: 'Flowers and Plants', img: 'https://images.unsplash.com/photo-1416879598056-0c6559bc5cc4?w=400&h=300&fit=crop' },
-  { name: 'Flowers and Greeting Cards', img: 'https://images.unsplash.com/photo-1518349272332-9c3db7dae9e7?w=400&h=300&fit=crop' },
+  { name: 'Flowers and Teddy Bears', img: 'https://images.unsplash.com/photo-1508784411316-02b8cd4d3a3a?w=400&h=300&fit=crop' },
+  { name: 'Flowers and Guitarist', img: 'https://images.unsplash.com/photo-1496062031456-07b8f162a322?w=400&h=300&fit=crop' },
+  { name: 'Flowers and Plants', img: 'https://images.unsplash.com/photo-1464652149449-f3b8538144aa?w=400&h=300&fit=crop' },
+  { name: 'Flowers and Greeting Cards', img: 'https://images.unsplash.com/photo-1503431128871-16ef9822ce81?w=400&h=300&fit=crop' },
 ];
 
 export default function PairWithFlowers() {

@@ -5,9 +5,9 @@ const showstoppers = [
   { name: 'Flower Bouquets', img: 'https://images.unsplash.com/photo-1591886960571-74d43a9d4166?w=400&h=300&fit=crop' },
   { name: 'Flower Arrangements', img: 'https://images.unsplash.com/photo-1526047932273-341f2a7631f9?w=400&h=300&fit=crop' },
   { name: 'Standing Bouquets', img: 'https://images.unsplash.com/photo-1563241527-3004b7be0ffd?w=400&h=300&fit=crop' },
-  { name: 'Flower in a Box', img: 'https://images.unsplash.com/photo-1559230554-463286bceca2?w=400&h=300&fit=crop' },
-  { name: 'Zodiac Flowers', img: 'https://images.unsplash.com/photo-1523694086438-e699292a433f?w=400&h=300&fit=crop' },
-  { name: 'Sleeves', img: 'https://images.unsplash.com/photo-1540306354877-9df03dbba41d?w=400&h=300&fit=crop' },
+  { name: 'Flower in a Box', img: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=400&h=300&fit=crop' },
+  { name: 'Zodiac Flowers', img: 'https://images.unsplash.com/photo-1596700676646-ac74c1064db1?w=400&h=300&fit=crop' },
+  { name: 'Sleeves', img: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&h=300&fit=crop' },
 ];
 
 export default function ShowstopperCollection() {
