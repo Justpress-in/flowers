@@ -30,7 +30,7 @@ export default function AdminLogin({ onLogin }) {
     <div className="al-page">
       <div className="al-left">
         <div className="al-brand">
-          <Flower2 size={28} strokeWidth={1.8} />
+          <Flower2 size={36} strokeWidth={1.8} />
           <span>BloomNest</span>
         </div>
         <div className="al-tagline">
@@ -48,7 +48,7 @@ export default function AdminLogin({ onLogin }) {
         <div className="al-card">
           <div className="al-card-header">
             <div className="al-logo-sm">
-              <Flower2 size={22} strokeWidth={1.8} />
+              <Flower2 size={28} strokeWidth={1.8} />
             </div>
             <h2>Admin Sign In</h2>
             <p>Enter your credentials to access the dashboard</p>
@@ -58,7 +58,7 @@ export default function AdminLogin({ onLogin }) {
             <div className="al-field">
               <label>Email address</label>
               <div className="al-input-wrap">
-                <Mail size={16} className="al-input-icon" />
+                <Mail size={20} className="al-input-icon" />
                 <input
                   type="email"
                   placeholder="admin@flowers.com"
@@ -73,7 +73,7 @@ export default function AdminLogin({ onLogin }) {
             <div className="al-field">
               <label>Password</label>
               <div className="al-input-wrap">
-                <Lock size={16} className="al-input-icon" />
+                <Lock size={20} className="al-input-icon" />
                 <input
                   type={showPass ? 'text' : 'password'}
                   placeholder="Enter password"
@@ -88,14 +88,14 @@ export default function AdminLogin({ onLogin }) {
                   onClick={() => setShowPass(v => !v)}
                   tabIndex={-1}
                 >
-                  {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {error && (
               <div className="al-error">
-                <AlertCircle size={14} /> {error}
+                <AlertCircle size={16} /> {error}
               </div>
             )}
 

@@ -1,15 +1,18 @@
-/* ── Full-page split layout ──────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 .al-page {
+  font-family: 'Inter', sans-serif;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.1fr 0.9fr;
+  background: #09090b;
 }
 
-/* ── Left panel ──────────────────────────────────────── */
+/* ── Left panel (Sleek Dark with Glowing Orbs) ───────────────── */
 .al-left {
-  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  color: white;
-  padding: 3.5rem 4rem;
+  background: #09090b;
+  color: #ffffff;
+  padding: 4rem 5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -17,108 +20,196 @@
   overflow: hidden;
 }
 
-/* decorative circles */
+/* Animated glowing orbs */
 .al-left::before,
 .al-left::after {
   content: '';
   position: absolute;
   border-radius: 50%;
-  opacity: 0.07;
-  pointer-events: none;
+  filter: blur(90px);
+  z-index: 0;
+  animation: floatOrb 12s ease-in-out infinite alternate;
 }
+
 .al-left::before {
-  width: 480px;
-  height: 480px;
-  background: #c1440e;
-  top: -160px;
-  right: -160px;
+  width: 550px;
+  height: 550px;
+  background: rgba(225, 82, 38, 0.25); /* #e15226 */
+  top: -150px;
+  right: -100px;
 }
+
 .al-left::after {
-  width: 320px;
-  height: 320px;
-  background: #7c3aed;
-  bottom: -100px;
-  left: -80px;
+  width: 450px;
+  height: 450px;
+  background: rgba(124, 58, 237, 0.2);
+  bottom: -150px;
+  left: -150px;
+  animation-delay: -6s;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-40px, 40px) scale(1.15); }
 }
 
 .al-brand {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  font-size: 1.35rem;
+  gap: 0.75rem;
+  font-size: 1.6rem;
   font-weight: 800;
-  color: white;
+  color: #ffffff;
   position: relative;
   z-index: 1;
+  letter-spacing: -0.02em;
 }
 
 .al-tagline {
   position: relative;
   z-index: 1;
+  animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
 .al-tagline h1 {
-  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-size: clamp(2.75rem, 4vw, 4.5rem);
   font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 1rem;
+  line-height: 1.05;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
+
 .al-tagline p {
-  font-size: 1rem;
-  opacity: 0.75;
-  line-height: 1.7;
-  max-width: 340px;
+  font-size: 1.15rem;
+  color: #a1a1aa;
+  line-height: 1.6;
+  max-width: 400px;
+  font-weight: 400;
 }
 
 .al-stats {
   display: flex;
-  gap: 2.5rem;
+  gap: 1.5rem;
   position: relative;
   z-index: 1;
+  animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.al-stat { display: flex; flex-direction: column; gap: 0.15rem; }
-.al-stat strong { font-size: 1.6rem; font-weight: 800; color: white; line-height: 1; }
-.al-stat span   { font-size: 0.8rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 0.06em; }
 
-/* ── Right panel ─────────────────────────────────────── */
+.al-stat {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.25rem 1.75rem;
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+.al-stat:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.al-stat strong { 
+  font-size: 2rem; 
+  font-weight: 800; 
+  color: #ffffff; 
+  line-height: 1; 
+}
+
+.al-stat span { 
+  font-size: 0.8rem; 
+  color: #a1a1aa; 
+  text-transform: uppercase; 
+  letter-spacing: 0.12em; 
+  font-weight: 600;
+}
+
+/* ── Right panel (Light/Glassy Form) ─────────────────── */
 .al-right {
-  background: #f8f9fb;
+  background: #f4f4f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem 2rem;
+  padding: 2.5rem;
+  position: relative;
 }
 
 .al-card {
   width: 100%;
-  max-width: 420px;
-  background: white;
-  border-radius: 20px;
-  padding: 2.75rem 2.5rem 2rem;
-  box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 3.5rem 3rem;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02);
+  animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.al-card-header { text-align: center; margin-bottom: 2rem; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.al-card-header { 
+  text-align: center; 
+  margin-bottom: 2.5rem; 
+}
 
 .al-logo-sm {
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #c1440e, #f4a261);
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #e15226 0%, #f4a261 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.25rem;
+  box-shadow: 0 12px 24px -8px rgba(225, 82, 38, 0.5);
 }
 
-.al-card-header h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.3rem; }
-.al-card-header p  { font-size: 0.87rem; color: #6b7280; }
+.al-card-header h2 { 
+  font-size: 1.85rem; 
+  font-weight: 800; 
+  color: #09090b;
+  margin-bottom: 0.5rem; 
+  letter-spacing: -0.02em;
+}
+
+.al-card-header p { 
+  font-size: 1rem; 
+  color: #71717a; 
+}
 
 /* ── Form ────────────────────────────────────────────── */
-.al-form { display: flex; flex-direction: column; gap: 1.25rem; }
+.al-form { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 1.5rem; 
+}
 
-.al-field { display: flex; flex-direction: column; gap: 0.4rem; }
-.al-field label { font-size: 0.82rem; font-weight: 600; color: #374151; }
+.al-field { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.5rem; 
+}
+
+.al-field label { 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  color: #3f3f46; 
+}
 
 .al-input-wrap {
   position: relative;
@@ -128,95 +219,135 @@
 
 .al-input-icon {
   position: absolute;
-  left: 0.9rem;
-  color: #9ca3af;
+  left: 1.1rem;
+  color: #a1a1aa;
   pointer-events: none;
+  transition: color 0.3s ease;
 }
 
 .al-input-wrap input {
   width: 100%;
-  padding: 0.8rem 2.8rem 0.8rem 2.6rem;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  padding: 1rem 3rem 1rem 3.2rem;
+  border: 1.5px solid #e4e4e7;
+  border-radius: 14px;
+  font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
   background: #fafafa;
+  color: #09090b;
 }
+
+.al-input-wrap input::placeholder {
+  color: #a1a1aa;
+}
+
 .al-input-wrap input:focus {
-  border-color: #c1440e;
-  box-shadow: 0 0 0 3px rgba(193,68,14,0.1);
-  background: white;
+  border-color: #e15226;
+  box-shadow: 0 0 0 4px rgba(225, 82, 38, 0.1);
+  background: #ffffff;
+}
+
+.al-input-wrap:focus-within .al-input-icon {
+  color: #e15226;
 }
 
 .al-eye-btn {
   position: absolute;
-  right: 0.85rem;
+  right: 1.1rem;
   background: none;
   border: none;
-  color: #9ca3af;
+  color: #a1a1aa;
   cursor: pointer;
   padding: 0.2rem;
   display: flex;
   align-items: center;
+  transition: color 0.3s ease;
 }
-.al-eye-btn:hover { color: #374151; }
+
+.al-eye-btn:hover { 
+  color: #3f3f46; 
+}
 
 .al-error {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #dc2626;
-  font-size: 0.83rem;
-  padding: 0.65rem 0.9rem;
-  border-radius: 8px;
+  color: #ef4444;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  animation: slideIn 0.3s ease forwards;
 }
 
 .al-submit {
   width: 100%;
-  padding: 0.9rem;
-  background: linear-gradient(135deg, #c1440e, #e8572a);
-  color: white;
+  padding: 1.1rem;
+  background: linear-gradient(135deg, #e15226 0%, #f4a261 100%);
+  color: #ffffff;
   border: none;
-  border-radius: 10px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 8px 20px -6px rgba(225, 82, 38, 0.4);
 }
-.al-submit:hover { opacity: 0.9; transform: translateY(-1px); }
-.al-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+.al-submit:hover:not(:disabled) { 
+  transform: translateY(-2px); 
+  box-shadow: 0 12px 24px -8px rgba(225, 82, 38, 0.6);
+}
+
+.al-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.al-submit:disabled { 
+  opacity: 0.7; 
+  cursor: not-allowed; 
+}
 
 .al-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2.5px solid rgba(255,255,255,0.35);
-  border-top-color: white;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-top-color: #ffffff;
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes spin { 
+  to { transform: rotate(360deg); } 
+}
 
 .al-hint {
   text-align: center;
-  font-size: 0.78rem;
-  color: #9ca3af;
-  margin-top: 1.5rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #f3f4f6;
+  font-size: 0.9rem;
+  color: #a1a1aa;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e4e4e7;
 }
-.al-hint strong { color: #6b7280; }
+
+.al-hint strong { 
+  color: #3f3f46; 
+  font-weight: 600;
+}
 
 /* ── Responsive ──────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .al-page { grid-template-columns: 1fr; }
   .al-left { display: none; }
-  .al-right { padding: 2rem 1.25rem; background: white; }
-  .al-card { box-shadow: none; padding: 2rem 0; }
+  .al-right { padding: 2rem; background: #09090b; }
+  .al-card { 
+    max-width: 440px; 
+    padding: 2.5rem 2rem;
+  }
 }
