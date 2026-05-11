@@ -273,3 +273,302 @@
 }
 .perk-item h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
 .perk-item p { font-size: 0.8rem; opacity: 0.85; line-height: 1.5; }
+
+/* ── FNP Common Section Heading ── */
+.fnp-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+.fnp-heading svg {
+  color: #84cc16; /* spark/leaf color */
+}
+
+/* ── Shop By Price ── */
+.shop-by-price { padding: 4rem 0 2rem; background: #fffbf7; }
+.price-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+.price-pill {
+  padding: 0.6rem 1.5rem;
+  background: white;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.price-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* ── Delivering Blooms Cities ── */
+.cities-section { padding: 3rem 0; background: #fffbf7; }
+.cities-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+.city-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: white;
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.city-card:hover {
+  background: #f1f5f9;
+}
+.city-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.city-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #84cc16;
+  color: white;
+  margin-left: 0.5rem;
+}
+
+/* ── Choose a Favourite Colour ── */
+.colours-section { padding: 4rem 0 1rem; background: #fffbf7; }
+.colours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 2rem;
+  text-align: center;
+  justify-content: center;
+}
+.colour-item {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.colour-item:hover {
+  transform: translateY(-4px);
+}
+.colour-img-wrap {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 0.8rem;
+  position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.colour-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.colour-item span {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+/* ── Showstopper & Pairs Collection ── */
+.showstopper-section { padding: 4rem 0; background: white; }
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+@media (max-width: 900px) {
+  .collection-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .collection-grid { grid-template-columns: 1fr; }
+}
+.collection-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafafa;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.collection-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+.collection-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+.collection-card:hover img {
+  transform: scale(1.05);
+}
+.collection-card-text {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: white;
+  padding: 1.2rem 1.8rem;
+  border-top-right-radius: 28px;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+
+/* ── Customer Reviews ── */
+.reviews-section { padding: 4rem 0 2rem; background: white; }
+.view-all-reviews {
+  background: white;
+  border: 1px solid var(--border);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+.view-all-reviews:hover { background: #f8fafc; }
+.reviews-carousel {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  scrollbar-width: thin;
+}
+.review-card {
+  min-width: 320px;
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+.review-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.review-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #475569;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+.review-meta {
+  display: flex;
+  flex-direction: column;
+}
+.review-name { font-size: 0.9rem; color: var(--text-muted); }
+.review-name strong { color: var(--text); }
+.review-stars { margin-top: 0.2rem; display: flex; gap: 0.1rem; }
+.review-text {
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+  flex-grow: 1;
+  margin-bottom: 1.5rem;
+}
+.review-foot {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  background: #f8fafc;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+}
+
+/* ── SEO Text ── */
+.seo-section {
+  padding: 3rem 0 5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.seo-section h3 {
+  color: var(--text);
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+.seo-section a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+.seo-section a:hover {
+  text-decoration: underline;
+}
+.seo-readmore {
+  color: #ea580c;
+  font-weight: 600;
+  margin-top: 0.8rem;
+  cursor: pointer;
+}
+
+/* ── Trust Footer ── */
+.trust-footer {
+  border-top: 1px solid var(--border);
+  background: white;
+  padding: 3rem 0;
+}
+.trust-footer-inner {
+  display: flex;
+  justify-content: space-evenly;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+.trust-item img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+.trust-item h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  color: var(--text);
+}
+.trust-item p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}

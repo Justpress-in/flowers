@@ -381,7 +381,10 @@ export default function AdminPage() {
                   const storeProds = state.products.filter(p => p.storeInventory.some(s => s.storeId === store.id));
                   return (
                     <div key={store.id} className="adm-inv-card">
-                      <div className="adm-inv-head"><h3>{store.name}</h3><p>{store.location}</p></div>
+                      <div className="adm-inv-head">
+                        <h3>{store.name}</h3>
+                        <p><MapPin size={14} /> {store.location}</p>
+                      </div>
                       <div className="adm-inv-list">
                         {storeProds.map(p => {
                           const si = p.storeInventory.find(s => s.storeId === store.id);
