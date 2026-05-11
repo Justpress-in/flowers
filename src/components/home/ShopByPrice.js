@@ -12,16 +12,18 @@ const prices = [
 
 export default function ShopByPrice() {
   return (
-    <section className="shop-by-price container">
-      <h2 className="fnp-heading">
-        <Sparkles size={18} strokeWidth={2} /> Shop By Price <Sparkles size={18} strokeWidth={2} />
-      </h2>
-      <div className="price-pills">
-        {prices.map(p => (
-          <Link key={p.label} to={p.to} className="price-pill">
-            {p.label}
-          </Link>
-        ))}
+    <section className="shop-by-price">
+      <div className="container">
+        <h2 className="fnp-heading">
+          <Sparkles size={18} strokeWidth={2} /> Shop By Price <Sparkles size={18} strokeWidth={2} />
+        </h2>
+        <div className="price-pills">
+          {prices.map(p => (
+            <Link key={p.label} to={p.to} className="price-pill">
+              {p.label}
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

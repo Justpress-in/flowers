@@ -18,19 +18,21 @@ const colours = [
 
 export default function FavouriteColour() {
   return (
-    <section className="colours-section container">
-      <h2 className="fnp-heading">
-        <Sparkles size={18} strokeWidth={2} /> Choose a Favourite Colour <Sparkles size={18} strokeWidth={2} />
-      </h2>
-      <div className="colours-grid">
-        {colours.map(c => (
-          <div key={c.name} className="colour-item">
-            <div className="colour-img-wrap">
-              <img src={c.img} alt={c.name} />
+    <section className="colours-section">
+      <div className="container">
+        <h2 className="fnp-heading">
+          <Sparkles size={18} strokeWidth={2} /> Choose a Favourite Colour <Sparkles size={18} strokeWidth={2} />
+        </h2>
+        <div className="colours-grid">
+          {colours.map(c => (
+            <div key={c.name} className="colour-item">
+              <div className="colour-img-wrap">
+                <img src={c.img} alt={c.name} />
+              </div>
+              <span>{c.name}</span>
             </div>
-            <span>{c.name}</span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

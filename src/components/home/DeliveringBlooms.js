@@ -14,18 +14,20 @@ const cities = [
 
 export default function DeliveringBlooms() {
   return (
-    <section className="cities-section container">
-      <h2 className="fnp-heading">
-        <Sparkles size={18} strokeWidth={2} /> Delivering Blooms Across Saudi Arabia <Sparkles size={18} strokeWidth={2} />
-      </h2>
-      <div className="cities-grid">
-        {cities.map(c => (
-          <div key={c.name} className="city-card">
-            <img src={c.icon} alt={c.name} className="city-icon" />
-            <span>{c.name}</span>
-            <div className="city-arrow"><ArrowRight size={14} /></div>
-          </div>
-        ))}
+    <section className="cities-section">
+      <div className="container">
+        <h2 className="fnp-heading">
+          <Sparkles size={18} strokeWidth={2} /> Delivering Blooms Across Saudi Arabia <Sparkles size={18} strokeWidth={2} />
+        </h2>
+        <div className="cities-grid">
+          {cities.map(c => (
+            <div key={c.name} className="city-card">
+              <img src={c.icon} alt={c.name} className="city-icon" />
+              <span>{c.name}</span>
+              <div className="city-arrow"><ArrowRight size={14} /></div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -12,19 +12,21 @@ const showstoppers = [
 
 export default function ShowstopperCollection() {
   return (
-    <section className="showstopper-section container">
-      <h2 className="fnp-heading">
-        <Sparkles size={18} strokeWidth={2} /> The Showstopper Collection <Sparkles size={18} strokeWidth={2} />
-      </h2>
-      <div className="collection-grid">
-        {showstoppers.map(s => (
-          <div key={s.name} className="collection-card">
-            <img src={s.img} alt={s.name} />
-            <div className="collection-card-text">
-              {s.name}
+    <section className="showstopper-section">
+      <div className="container">
+        <h2 className="fnp-heading">
+          <Sparkles size={18} strokeWidth={2} /> The Showstopper Collection <Sparkles size={18} strokeWidth={2} />
+        </h2>
+        <div className="collection-grid">
+          {showstoppers.map(s => (
+            <div key={s.name} className="collection-card">
+              <img src={s.img} alt={s.name} />
+              <div className="collection-card-text">
+                {s.name}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

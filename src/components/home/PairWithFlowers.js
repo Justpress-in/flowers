@@ -12,19 +12,21 @@ const pairs = [
 
 export default function PairWithFlowers() {
   return (
-    <section className="showstopper-section container">
-      <h2 className="fnp-heading">
-        <Sparkles size={18} strokeWidth={2} /> Pair With Flowers <Sparkles size={18} strokeWidth={2} />
-      </h2>
-      <div className="collection-grid">
-        {pairs.map(p => (
-          <div key={p.name} className="collection-card">
-            <img src={p.img} alt={p.name} />
-            <div className="collection-card-text">
-              {p.name}
+    <section className="showstopper-section">
+      <div className="container">
+        <h2 className="fnp-heading">
+          <Sparkles size={18} strokeWidth={2} /> Pair With Flowers <Sparkles size={18} strokeWidth={2} />
+        </h2>
+        <div className="collection-grid">
+          {pairs.map(p => (
+            <div key={p.name} className="collection-card">
+              <img src={p.img} alt={p.name} />
+              <div className="collection-card-text">
+                {p.name}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
