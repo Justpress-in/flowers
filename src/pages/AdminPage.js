@@ -6,8 +6,9 @@ import {
   LayoutDashboard, Package, Store as StoreIcon, ClipboardList, MapPin,
   Plus, Pencil, Trash2, X, Flower2, Gift, PartyPopper,
   Leaf, Sparkles, Phone, Mail, LogOut, ChevronRight,
-  TrendingUp, ShoppingBag, AlertTriangle, DollarSign,
+  ShoppingBag, AlertTriangle, DollarSign,
   Menu as MenuIcon, Image as ImageIcon,
+  Calendar, Users, Tag, Building2,
 } from 'lucide-react';
 import './AdminPage.css';
 
@@ -17,13 +18,18 @@ const EMPTY_PRODUCT = {
   allowCustomDescription: true, storeInventory: [],
 };
 const EMPTY_STORE = { name: '', location: '', phone: '', email: '' };
+const EMPTY_EVENT = {
+  name: '', packageType: 'wedding', venue: '', date: '', capacity: '',
+  description: '', price: '', contactName: '', contactPhone: '', status: 'enquiry',
+};
 
 const NAV = [
-  { id: 'dashboard', label: 'Dashboard',       Icon: LayoutDashboard },
-  { id: 'products',  label: 'Products',         Icon: Package },
-  { id: 'inventory', label: 'Store Inventory',  Icon: StoreIcon },
-  { id: 'stores',    label: 'Stores',           Icon: MapPin },
-  { id: 'orders',    label: 'Orders',           Icon: ClipboardList },
+  { id: 'dashboard', label: 'Dashboard',        Icon: LayoutDashboard },
+  { id: 'products',  label: 'Products',          Icon: Package },
+  { id: 'parties',   label: 'Parties & Events',  Icon: PartyPopper },
+  { id: 'inventory', label: 'Store Inventory',   Icon: StoreIcon },
+  { id: 'stores',    label: 'Stores',            Icon: MapPin },
+  { id: 'orders',    label: 'Orders',            Icon: ClipboardList },
 ];
 
 export default function AdminPage() {
@@ -42,6 +48,11 @@ export default function AdminPage() {
   const [showStoreForm, setShowStoreForm]     = useState(false);
   const [editingStoreId, setEditingStoreId]   = useState(null);
   const [storeForm, setStoreForm]             = useState(EMPTY_STORE);
+
+  // event form
+  const [showEventForm, setShowEventForm]     = useState(false);
+  const [editingEventId, setEditingEventId]   = useState(null);
+  const [eventForm, setEventForm]             = useState(EMPTY_EVENT);
 
   if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />;
 
@@ -88,6 +99,21 @@ export default function AdminPage() {
     setShowStoreForm(false); setEditingStoreId(null);
   }
   function deleteStore(id)      { if (window.confirm('Delete this store?')) dispatch({ type: 'DELETE_STORE', payload: id }); }
+
+  /* ── event handlers ── */
+  function openAddEvent()        { setEventForm(EMPTY_EVENT); setEditingEventId(null); setShowEventForm(true); }
+  function openEditEvent(ev)     { setEventForm({ ...ev }); setEditingEventId(ev.id); setShowEventForm(true); }
+  function handleEventChange(e)  { const { name, value } = e.target; setEventForm(f => ({ ...f, [name]: value })); }
+  function handleEventSubmit(e) {
+    e.preventDefault();
+    if (!eventForm.name || !eventForm.venue || !eventForm.contactPhone) { alert('Fill name, venue and contact phone.'); return; }
+    dispatch({
+      type: editingEventId ? 'UPDATE_EVENT' : 'ADD_EVENT',
+      payload: { ...eventForm, id: editingEventId || 'ev-' + Math.random().toString(36).substr(2, 8) },
+    });
+    setShowEventForm(false); setEditingEventId(null);
+  }
+  function deleteEvent(id)       { if (window.confirm('Delete this event booking?')) dispatch({ type: 'DELETE_EVENT', payload: id }); }
 
   const catProducts = (cat) => state.products.filter(p => p.category === cat);
 
@@ -165,7 +191,11 @@ export default function AdminPage() {
               <div className="adm-stat-cards">
                 <div className="adm-stat-card">
                   <div className="adm-stat-icon" style={{ background: 'rgba(193,68,14,0.1)', color: '#c1440e' }}><ShoppingBag size={22} /></div>
-                  <div><p>Total Products</p><h3>{state.products.length}</h3></div>
+                  <div><p>Total Products</p><h3>{state.products.filter(p => p.category !== 'parties').length}</h3></div>
+                </div>
+                <div className="adm-stat-card">
+                  <div className="adm-stat-icon" style={{ background: 'rgba(217,119,6,0.1)', color: '#d97706' }}><PartyPopper size={22} /></div>
+                  <div><p>Events</p><h3>{state.events.length}</h3></div>
                 </div>
                 <div className="adm-stat-card">
                   <div className="adm-stat-icon" style={{ background: 'rgba(45,106,79,0.1)', color: '#2d6a4f' }}><ClipboardList size={22} /></div>
@@ -174,10 +204,6 @@ export default function AdminPage() {
                 <div className="adm-stat-card">
                   <div className="adm-stat-icon" style={{ background: 'rgba(124,58,237,0.1)', color: '#7c3aed' }}><DollarSign size={22} /></div>
                   <div><p>Total Revenue</p><h3>${totalRevenue.toLocaleString()}</h3></div>
-                </div>
-                <div className="adm-stat-card">
-                  <div className="adm-stat-icon" style={{ background: 'rgba(217,119,6,0.1)', color: '#d97706' }}><StoreIcon size={22} /></div>
-                  <div><p>Stores</p><h3>{state.stores.length}</h3></div>
                 </div>
               </div>
 
@@ -213,21 +239,29 @@ export default function AdminPage() {
 
                 <div className="adm-dash-card">
                   <div className="adm-dash-card-header">
-                    <h3>Category Split</h3>
+                    <h3>Product Split</h3>
                   </div>
-                  {['flowers', 'gifts', 'parties'].map(cat => {
+                  {['flowers', 'gifts'].map(cat => {
                     const count = state.products.filter(p => p.category === cat).length;
-                    const pct = state.products.length ? Math.round(count / state.products.length * 100) : 0;
+                    const total = state.products.filter(p => p.category !== 'parties').length;
+                    const pct = total ? Math.round(count / total * 100) : 0;
                     return (
                       <div key={cat} className="adm-bar-row">
                         <span className="adm-bar-label">{cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
                         <div className="adm-bar-track">
-                          <div className="adm-bar-fill" style={{ width: `${pct}%`, background: cat === 'flowers' ? '#e11d48' : cat === 'gifts' ? '#7c3aed' : '#d97706' }} />
+                          <div className="adm-bar-fill" style={{ width: `${pct}%`, background: cat === 'flowers' ? '#e11d48' : '#7c3aed' }} />
                         </div>
                         <span className="adm-bar-count">{count}</span>
                       </div>
                     );
                   })}
+                  <div className="adm-bar-row">
+                    <span className="adm-bar-label">Events</span>
+                    <div className="adm-bar-track">
+                      <div className="adm-bar-fill" style={{ width: state.events.length ? '60%' : '0%', background: '#d97706' }} />
+                    </div>
+                    <span className="adm-bar-count">{state.events.length}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -237,10 +271,10 @@ export default function AdminPage() {
           {activeTab === 'products' && (
             <div className="adm-section">
               <div className="adm-section-header">
-                <h2>All Products <span className="adm-count-badge">{state.products.length}</span></h2>
+                <h2>All Products <span className="adm-count-badge">{state.products.filter(p => p.category !== 'parties').length}</span></h2>
                 <button className="btn btn-primary" onClick={openAddForm}><Plus size={15} /> Add Product</button>
               </div>
-              {['flowers', 'gifts', 'parties'].map(cat => (
+              {['flowers', 'gifts'].map(cat => (
                 <div key={cat} className="adm-cat-group">
                   <h3 className="adm-cat-label">
                     {cat === 'flowers' ? <Flower2 size={14} /> : cat === 'gifts' ? <Gift size={14} /> : <PartyPopper size={14} />}
@@ -276,6 +310,65 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ── Parties & Events ── */}
+          {activeTab === 'parties' && (
+            <div className="adm-section">
+              <div className="adm-section-header">
+                <h2>Parties & Events <span className="adm-count-badge">{state.events.length}</span></h2>
+                <button className="btn btn-primary" onClick={openAddEvent}><Plus size={15} /> New Booking</button>
+              </div>
+
+              {/* Summary chips */}
+              <div className="adm-event-chips">
+                {['wedding','birthday','corporate','anniversary','other'].map(type => {
+                  const count = state.events.filter(ev => ev.packageType === type).length;
+                  return (
+                    <div key={type} className="adm-event-chip">
+                      <span className="adm-event-chip-label">{type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                      <span className="adm-event-chip-count">{count}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {state.events.length === 0 ? (
+                <div className="adm-events-empty">
+                  <PartyPopper size={40} strokeWidth={1.2} />
+                  <p>No event bookings yet.</p>
+                  <button className="btn btn-primary" onClick={openAddEvent}><Plus size={14} /> Add First Booking</button>
+                </div>
+              ) : (
+                <div className="adm-events-grid">
+                  {state.events.map(ev => (
+                    <div key={ev.id} className="adm-event-card">
+                      <div className="adm-event-card-header">
+                        <span className={`adm-event-type-badge type-${ev.packageType}`}>
+                          <PartyPopper size={11} /> {ev.packageType}
+                        </span>
+                        <span className={`adm-event-status status-${ev.status}`}>{ev.status}</span>
+                      </div>
+                      <h3 className="adm-event-name">{ev.name}</h3>
+                      <div className="adm-event-meta">
+                        {ev.date && <p><Calendar size={12} /> {new Date(ev.date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</p>}
+                        <p><Building2 size={12} /> {ev.venue}</p>
+                        {ev.capacity && <p><Users size={12} /> {ev.capacity} guests</p>}
+                        {ev.price && <p><Tag size={12} /> ${Number(ev.price).toLocaleString()}</p>}
+                      </div>
+                      {ev.description && <p className="adm-event-desc">{ev.description}</p>}
+                      <div className="adm-event-contact">
+                        <strong>{ev.contactName}</strong> · {ev.contactPhone}
+                      </div>
+                      <div className="adm-event-actions">
+                        <button className="btn btn-ghost" onClick={() => openEditEvent(ev)}><Pencil size={13} /> Edit</button>
+                        <button className="btn btn-ghost adm-del-btn" onClick={() => deleteEvent(ev.id)}><Trash2 size={13} /> Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -364,6 +457,84 @@ export default function AdminPage() {
         </div>
       </div>
 
+      {/* ── Event Modal ── */}
+      {showEventForm && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEventForm(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>{editingEventId ? 'Edit Event Booking' : 'New Event Booking'}</h2>
+              <button className="modal-close" onClick={() => setShowEventForm(false)}><X size={18} /></button>
+            </div>
+            <form className="modal-form" onSubmit={handleEventSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Event / Client Name *</label>
+                  <input name="name" value={eventForm.name} onChange={handleEventChange} placeholder="e.g. Sharma Wedding" />
+                </div>
+                <div className="form-group">
+                  <label>Package Type *</label>
+                  <select name="packageType" value={eventForm.packageType} onChange={handleEventChange}>
+                    <option value="wedding">Wedding</option>
+                    <option value="birthday">Birthday</option>
+                    <option value="corporate">Corporate</option>
+                    <option value="anniversary">Anniversary</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Venue *</label>
+                  <input name="venue" value={eventForm.venue} onChange={handleEventChange} placeholder="Grand Ballroom, Hotel Taj" />
+                </div>
+                <div className="form-group">
+                  <label>Event Date</label>
+                  <input type="date" name="date" value={eventForm.date} onChange={handleEventChange} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Guest Capacity</label>
+                  <input type="number" name="capacity" value={eventForm.capacity} onChange={handleEventChange} placeholder="e.g. 200" min="1" />
+                </div>
+                <div className="form-group">
+                  <label>Package Price ($)</label>
+                  <input type="number" name="price" value={eventForm.price} onChange={handleEventChange} placeholder="e.g. 1500" min="0" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Description / Requirements</label>
+                <textarea name="description" rows={3} value={eventForm.description} onChange={handleEventChange} placeholder="Floral arch, table centrepieces, bridal bouquet…" />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Contact Person</label>
+                  <input name="contactName" value={eventForm.contactName} onChange={handleEventChange} placeholder="Full name" />
+                </div>
+                <div className="form-group">
+                  <label>Contact Phone *</label>
+                  <input name="contactPhone" value={eventForm.contactPhone} onChange={handleEventChange} placeholder="+1 234 567 8900" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Status</label>
+                <select name="status" value={eventForm.status} onChange={handleEventChange}>
+                  <option value="enquiry">Enquiry</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowEventForm(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">{editingEventId ? 'Save Changes' : 'Create Booking'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ── Store Modal ── */}
       {showStoreForm && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowStoreForm(false)}>
@@ -405,7 +576,6 @@ export default function AdminPage() {
                   <select name="category" value={form.category} onChange={handleChange}>
                     <option value="flowers">Flowers</option>
                     <option value="gifts">Gifts</option>
-                    <option value="parties">Parties & Events</option>
                   </select>
                 </div>
               </div>

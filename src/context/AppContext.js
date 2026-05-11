@@ -8,6 +8,7 @@ const initialState = {
   stores,
   banners,
   orders: [],
+  events: [],
 };
 
 function reducer(state, action) {
@@ -35,6 +36,13 @@ function reducer(state, action) {
           o.id === action.payload.id ? { ...o, status: action.payload.status, trackingUrl: action.payload.trackingUrl } : o
         ),
       };
+
+    case 'ADD_EVENT':
+      return { ...state, events: [...state.events, action.payload] };
+    case 'UPDATE_EVENT':
+      return { ...state, events: state.events.map(ev => ev.id === action.payload.id ? action.payload : ev) };
+    case 'DELETE_EVENT':
+      return { ...state, events: state.events.filter(ev => ev.id !== action.payload) };
 
     default:
       return state;
