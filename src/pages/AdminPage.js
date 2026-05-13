@@ -10,9 +10,17 @@ import {
   ShoppingBag, AlertTriangle, DollarSign,
   Menu as MenuIcon, Image as ImageIcon,
   Calendar, Users, Tag, Building2, Shield, Truck,
-  Loader2, Upload as UploadIcon,
+  Loader2, Upload as UploadIcon, RefreshCw,
+  UserCircle2, BadgePercent, Ticket, BookOpen,
+  Megaphone, MessageSquareQuote, Bike, CalendarCheck2,
+  Star, Settings as SettingsIcon, Image as ImagesIcon,
 } from 'lucide-react';
 import { admins as adminsApi, upload as uploadApi } from '../api/endpoints';
+import {
+  UsersTab, SettingsTab, CouponsTab, PackagesTab, BlogsTab,
+  OffersTab, TestimonialsTab, DeliveryPartnersTab, BannersTab,
+  BookingsTab, ReviewsTab,
+} from '../components/admin/AdminTabs';
 import './AdminPage.css';
 
 const EMPTY_PRODUCT = {
@@ -29,13 +37,24 @@ const EMPTY_ADMIN_FORM = { email: '', name: '', password: '', role: 'admin' };
 const EMPTY_PASSWORD_FORM = { currentPassword: '', password: '' };
 
 const NAV = [
-  { id: 'dashboard', label: 'Dashboard',        Icon: LayoutDashboard },
-  { id: 'products',  label: 'Products',          Icon: Package },
-  { id: 'parties',   label: 'Parties & Events',  Icon: PartyPopper },
-  { id: 'inventory', label: 'Store Inventory',   Icon: StoreIcon },
-  { id: 'stores',    label: 'Stores',            Icon: MapPin },
-  { id: 'orders',    label: 'Orders',            Icon: ClipboardList },
-  { id: 'admins',    label: 'Admins',            Icon: Shield },
+  { id: 'dashboard',  label: 'Dashboard',        Icon: LayoutDashboard },
+  { id: 'products',   label: 'Products',          Icon: Package },
+  { id: 'parties',    label: 'Parties & Events',  Icon: PartyPopper },
+  { id: 'packages',   label: 'Packages',          Icon: BadgePercent },
+  { id: 'inventory',  label: 'Store Inventory',   Icon: StoreIcon },
+  { id: 'stores',     label: 'Stores',            Icon: MapPin },
+  { id: 'orders',     label: 'Orders',            Icon: ClipboardList },
+  { id: 'bookings',   label: 'Bookings',          Icon: CalendarCheck2 },
+  { id: 'customers',  label: 'Customers',         Icon: UserCircle2 },
+  { id: 'reviews',    label: 'Reviews',           Icon: Star },
+  { id: 'coupons',    label: 'Coupons',           Icon: Ticket },
+  { id: 'offers',     label: 'Offers',            Icon: Megaphone },
+  { id: 'banners',    label: 'Banners',           Icon: ImagesIcon },
+  { id: 'testimonials', label: 'Testimonials',    Icon: MessageSquareQuote },
+  { id: 'blogs',      label: 'Blogs',             Icon: BookOpen },
+  { id: 'partners',   label: 'Delivery Partners', Icon: Bike },
+  { id: 'admins',     label: 'Admins',            Icon: Shield },
+  { id: 'settings',   label: 'Settings',          Icon: SettingsIcon },
 ];
 
 const ORDER_STATUSES = ['Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
@@ -102,6 +121,15 @@ export default function AdminPage() {
       .finally(() => { if (!cancelled) setAdminsLoading(false); });
     return () => { cancelled = true; };
   }, [activeTab, isAuthenticated]);
+
+  // Re-pull orders and products whenever the admin opens dashboard or orders so
+  // new customer checkouts show up without a full page reload.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (activeTab !== 'dashboard' && activeTab !== 'orders') return;
+    actions.refetch('orders').catch(() => {});
+    actions.refetch('products').catch(() => {});
+  }, [activeTab, isAuthenticated, actions]);
 
   if (bootstrapping) {
     return (
@@ -721,7 +749,19 @@ export default function AdminPage() {
           {/* ── Orders ── */}
           {activeTab === 'orders' && (
             <div className="adm-section">
-              <div className="adm-section-header"><h2>Orders <span className="adm-count-badge">{state.orders.length}</span></h2></div>
+              <div className="adm-section-header">
+                <h2>Orders <span className="adm-count-badge">{state.orders.length}</span></h2>
+                <button
+                  className="btn btn-ghost"
+                  onClick={async () => {
+                    try { await actions.refetch('orders'); }
+                    catch (err) { setBanner({ type: 'error', text: err.message }); }
+                  }}
+                  disabled={busy}
+                >
+                  <RefreshCw size={14} /> Refresh
+                </button>
+              </div>
               {state.orders.length === 0 ? (
                 <div className="adm-empty-lg">No orders placed yet.</div>
               ) : (
@@ -741,6 +781,19 @@ export default function AdminPage() {
               )}
             </div>
           )}
+
+          {/* ── New feature tabs ── */}
+          {activeTab === 'customers' && <UsersTab />}
+          {activeTab === 'coupons' && <CouponsTab />}
+          {activeTab === 'packages' && <PackagesTab />}
+          {activeTab === 'reviews' && <ReviewsTab />}
+          {activeTab === 'offers' && <OffersTab />}
+          {activeTab === 'testimonials' && <TestimonialsTab />}
+          {activeTab === 'partners' && <DeliveryPartnersTab />}
+          {activeTab === 'banners' && <BannersTab />}
+          {activeTab === 'bookings' && <BookingsTab />}
+          {activeTab === 'blogs' && <BlogsTab />}
+          {activeTab === 'settings' && <SettingsTab />}
 
           {/* ── Admins ── */}
           {activeTab === 'admins' && (
