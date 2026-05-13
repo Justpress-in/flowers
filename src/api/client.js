@@ -1,96 +1,126 @@
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-const STORAGE = {
-  access: 'bn_access_token',
-  refresh: 'bn_refresh_token',
-  admin: 'bn_admin',
+// Two parallel auth realms — admin signs in via /api/auth, customer via /api/users.
+const REALMS = {
+  admin: {
+    accessKey: 'bn_access_token',
+    refreshKey: 'bn_refresh_token',
+    profileKey: 'bn_admin',
+    refreshPath: '/auth/refresh',
+  },
+  user: {
+    accessKey: 'bn_user_access_token',
+    refreshKey: 'bn_user_refresh_token',
+    profileKey: 'bn_user',
+    refreshPath: '/users/refresh',
+  },
 };
 
-let accessToken = null;
-let refreshInFlight = null;
-const listeners = new Set();
+const state = {
+  admin: { accessToken: null, refreshInFlight: null },
+  user: { accessToken: null, refreshInFlight: null },
+};
 
-function loadFromStorage() {
+const listeners = { admin: new Set(), user: new Set() };
+
+function loadTokens() {
   try {
-    accessToken = localStorage.getItem(STORAGE.access) || null;
+    state.admin.accessToken = localStorage.getItem(REALMS.admin.accessKey) || null;
+    state.user.accessToken = localStorage.getItem(REALMS.user.accessKey) || null;
   } catch {
-    accessToken = null;
+    state.admin.accessToken = null;
+    state.user.accessToken = null;
   }
 }
-loadFromStorage();
+loadTokens();
 
-export function getAccessToken() {
-  return accessToken;
+function notify(realm) {
+  listeners[realm].forEach((fn) => {
+    try { fn(); } catch {}
+  });
 }
 
-export function getStoredRefreshToken() {
-  try { return localStorage.getItem(STORAGE.refresh); } catch { return null; }
+export function getAccessToken(realm = 'admin') {
+  return state[realm]?.accessToken || null;
 }
-
-export function getStoredAdmin() {
+export function getStoredRefreshToken(realm = 'admin') {
+  try { return localStorage.getItem(REALMS[realm].refreshKey); } catch { return null; }
+}
+export function getStoredProfile(realm = 'admin') {
   try {
-    const raw = localStorage.getItem(STORAGE.admin);
+    const raw = localStorage.getItem(REALMS[realm].profileKey);
     return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
-export function setSession({ accessToken: at, refreshToken, admin } = {}) {
-  if (at !== undefined) {
-    accessToken = at;
-    try { at ? localStorage.setItem(STORAGE.access, at) : localStorage.removeItem(STORAGE.access); } catch {}
+export function setSession(realm, { accessToken, refreshToken, profile } = {}) {
+  const cfg = REALMS[realm];
+  if (!cfg) return;
+  if (accessToken !== undefined) {
+    state[realm].accessToken = accessToken;
+    try {
+      accessToken
+        ? localStorage.setItem(cfg.accessKey, accessToken)
+        : localStorage.removeItem(cfg.accessKey);
+    } catch {}
   }
   if (refreshToken !== undefined) {
-    try { refreshToken ? localStorage.setItem(STORAGE.refresh, refreshToken) : localStorage.removeItem(STORAGE.refresh); } catch {}
+    try {
+      refreshToken
+        ? localStorage.setItem(cfg.refreshKey, refreshToken)
+        : localStorage.removeItem(cfg.refreshKey);
+    } catch {}
   }
-  if (admin !== undefined) {
-    try { admin ? localStorage.setItem(STORAGE.admin, JSON.stringify(admin)) : localStorage.removeItem(STORAGE.admin); } catch {}
+  if (profile !== undefined) {
+    try {
+      profile
+        ? localStorage.setItem(cfg.profileKey, JSON.stringify(profile))
+        : localStorage.removeItem(cfg.profileKey);
+    } catch {}
   }
-  listeners.forEach((fn) => {
-    try { fn(); } catch {}
-  });
+  notify(realm);
 }
 
-export function clearSession() {
-  accessToken = null;
+export function clearSession(realm = 'admin') {
+  state[realm].accessToken = null;
   try {
-    localStorage.removeItem(STORAGE.access);
-    localStorage.removeItem(STORAGE.refresh);
-    localStorage.removeItem(STORAGE.admin);
+    const cfg = REALMS[realm];
+    localStorage.removeItem(cfg.accessKey);
+    localStorage.removeItem(cfg.refreshKey);
+    localStorage.removeItem(cfg.profileKey);
   } catch {}
-  listeners.forEach((fn) => {
-    try { fn(); } catch {}
-  });
+  notify(realm);
 }
 
-export function onAuthChange(fn) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
+export function onAuthChange(realm, fn) {
+  listeners[realm].add(fn);
+  return () => listeners[realm].delete(fn);
 }
 
-async function doRefresh() {
-  const stored = getStoredRefreshToken();
-  const res = await fetch(`${API_BASE}/auth/refresh`, {
+async function doRefresh(realm) {
+  const cfg = REALMS[realm];
+  const stored = getStoredRefreshToken(realm);
+  const res = await fetch(`${API_BASE}${cfg.refreshPath}`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(stored ? { refreshToken: stored } : {}),
   });
   if (!res.ok) {
-    clearSession();
+    clearSession(realm);
     throw new ApiError(res.status, 'Session expired, please sign in again');
   }
   const data = await res.json();
-  setSession({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+  setSession(realm, { accessToken: data.accessToken, refreshToken: data.refreshToken });
   return data.accessToken;
 }
 
-function refreshAccessToken() {
-  if (!refreshInFlight) {
-    refreshInFlight = doRefresh().finally(() => { refreshInFlight = null; });
+function refreshAccessToken(realm) {
+  const s = state[realm];
+  if (!s.refreshInFlight) {
+    s.refreshInFlight = doRefresh(realm).finally(() => { s.refreshInFlight = null; });
   }
-  return refreshInFlight;
+  return s.refreshInFlight;
 }
 
 export class ApiError extends Error {
@@ -113,9 +143,9 @@ async function rawRequest(path, opts = {}) {
   if (!isForm && opts.body !== undefined && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
-  if (accessToken && !opts.skipAuth) {
-    headers.set('Authorization', `Bearer ${accessToken}`);
-  }
+  const realm = opts.realm || 'admin';
+  const token = !opts.skipAuth ? state[realm]?.accessToken : null;
+  if (token) headers.set('Authorization', `Bearer ${token}`);
 
   const body =
     opts.body === undefined || isForm || typeof opts.body === 'string'
@@ -145,19 +175,23 @@ async function rawRequest(path, opts = {}) {
 }
 
 export async function apiFetch(path, opts = {}) {
+  const realm = opts.realm || 'admin';
   try {
     return await rawRequest(path, opts);
   } catch (err) {
+    const cfg = REALMS[realm];
     const canRetry =
       err instanceof ApiError &&
       err.status === 401 &&
       !opts.skipAuth &&
       !opts._retried &&
-      path !== '/auth/login' &&
-      path !== '/auth/refresh';
+      !path.endsWith(cfg.refreshPath) &&
+      !path.endsWith('/auth/login') &&
+      !path.endsWith('/users/login') &&
+      !path.endsWith('/users/register');
     if (!canRetry) throw err;
     try {
-      await refreshAccessToken();
+      await refreshAccessToken(realm);
     } catch (refreshErr) {
       throw refreshErr;
     }
@@ -165,12 +199,16 @@ export async function apiFetch(path, opts = {}) {
   }
 }
 
-export const api = {
-  get: (p, opts) => apiFetch(p, { ...opts, method: 'GET' }),
-  post: (p, body, opts) => apiFetch(p, { ...opts, method: 'POST', body }),
-  put: (p, body, opts) => apiFetch(p, { ...opts, method: 'PUT', body }),
-  patch: (p, body, opts) => apiFetch(p, { ...opts, method: 'PATCH', body }),
-  del: (p, opts) => apiFetch(p, { ...opts, method: 'DELETE' }),
-};
+function makeApi(realm) {
+  return {
+    get: (p, opts) => apiFetch(p, { ...opts, realm, method: 'GET' }),
+    post: (p, body, opts) => apiFetch(p, { ...opts, realm, method: 'POST', body }),
+    put: (p, body, opts) => apiFetch(p, { ...opts, realm, method: 'PUT', body }),
+    patch: (p, body, opts) => apiFetch(p, { ...opts, realm, method: 'PATCH', body }),
+    del: (p, opts) => apiFetch(p, { ...opts, realm, method: 'DELETE' }),
+  };
+}
 
+export const api = makeApi('admin');
+export const userApi = makeApi('user');
 export const API_URL = API_BASE;
