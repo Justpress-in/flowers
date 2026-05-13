@@ -6,6 +6,7 @@ import {
   ShoppingBag, ArrowLeft, ShoppingCart, Ruler,
   Plus, Minus, CheckCircle2,
 } from 'lucide-react';
+import ProductReviews from '../components/ProductReviews';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -225,6 +226,8 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      <ProductReviews productId={product.id} />
     </div>
   );
 }
