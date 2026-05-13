@@ -1,24 +1,70 @@
-import { api, setSession, clearSession, getStoredRefreshToken } from './client';
+import {
+  api,
+  userApi,
+  setSession,
+  clearSession,
+  getStoredRefreshToken,
+} from './client';
 
+// ── Admin auth (realm: admin) ─────────────────────────────────────────
 export const auth = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
-  refresh: () => api.post('/auth/refresh', { refreshToken: getStoredRefreshToken() || undefined }),
+  refresh: () =>
+    api.post('/auth/refresh', { refreshToken: getStoredRefreshToken('admin') || undefined }),
   logout: async () => {
     try {
-      await api.post('/auth/logout', { refreshToken: getStoredRefreshToken() || undefined });
+      await api.post('/auth/logout', {
+        refreshToken: getStoredRefreshToken('admin') || undefined,
+      });
     } catch {}
-    clearSession();
+    clearSession('admin');
   },
   applyLogin: (data) => {
-    setSession({
+    setSession('admin', {
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
-      admin: data.admin,
+      profile: data.admin,
     });
   },
 };
 
+// ── User auth (realm: user) ────────────────────────────────────────────
+export const userAuth = {
+  register: (body) => userApi.post('/users/register', body),
+  login: (email, password) => userApi.post('/users/login', { email, password }),
+  me: () => userApi.get('/users/me'),
+  updateProfile: (body) => userApi.patch('/users/me', body),
+  refresh: () =>
+    userApi.post('/users/refresh', { refreshToken: getStoredRefreshToken('user') || undefined }),
+  logout: async () => {
+    try {
+      await userApi.post('/users/logout', {
+        refreshToken: getStoredRefreshToken('user') || undefined,
+      });
+    } catch {}
+    clearSession('user');
+  },
+  applySession: (data) => {
+    setSession('user', {
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      profile: data.user,
+    });
+  },
+};
+
+// ── Cart ───────────────────────────────────────────────────────────────
+export const cart = {
+  get: () => userApi.get('/cart'),
+  addItem: (item) => userApi.post('/cart/items', item),
+  updateItem: (id, body) => userApi.patch(`/cart/items/${id}`, body),
+  removeItem: (id) => userApi.del(`/cart/items/${id}`),
+  clear: () => userApi.del('/cart'),
+  merge: (items) => userApi.post('/cart/merge', { items }),
+};
+
+// ── Admin-managed resources ────────────────────────────────────────────
 export const products = {
   list: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
@@ -38,9 +84,10 @@ export const stores = {
 };
 
 export const orders = {
-  list: () => api.get('/orders'),
+  listAll: () => api.get('/orders'),
+  listMine: () => userApi.get('/orders/mine'),
   get: (id) => api.get(`/orders/${id}`),
-  create: (body) => api.post('/orders', body),
+  checkout: (body) => userApi.post('/orders/checkout', body),
   updateStatus: (id, body) => api.patch(`/orders/${id}/status`, body),
   remove: (id) => api.del(`/orders/${id}`),
 };
