@@ -2,23 +2,24 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { auth as authApi } from '../api/endpoints';
 import {
   getAccessToken,
-  getStoredAdmin,
+  getStoredProfile,
   getStoredRefreshToken,
   clearSession,
+  setSession,
 } from '../api/client';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [admin, setAdmin] = useState(() => getStoredAdmin());
+  const [admin, setAdmin] = useState(() => getStoredProfile('admin'));
   const [bootstrapping, setBootstrapping] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function bootstrap() {
-      const hasToken = !!getAccessToken();
-      const hasRefresh = !!getStoredRefreshToken();
-      if (!hasToken && !hasRefresh && !document.cookie.includes('refreshToken')) {
+      const hasToken = !!getAccessToken('admin');
+      const hasRefresh = !!getStoredRefreshToken('admin');
+      if (!hasToken && !hasRefresh) {
         if (!cancelled) setBootstrapping(false);
         return;
       }
@@ -26,11 +27,11 @@ export function AuthProvider({ children }) {
         const { admin: me } = await authApi.me();
         if (!cancelled) {
           setAdmin(me);
-          try { localStorage.setItem('bn_admin', JSON.stringify(me)); } catch {}
+          setSession('admin', { profile: me });
         }
       } catch {
         if (!cancelled) {
-          clearSession();
+          clearSession('admin');
           setAdmin(null);
         }
       } finally {
@@ -53,18 +54,6 @@ export function AuthProvider({ children }) {
     setAdmin(null);
   }, []);
 
-  const refreshAdmin = useCallback(async () => {
-    try {
-      const { admin: me } = await authApi.me();
-      setAdmin(me);
-      try { localStorage.setItem('bn_admin', JSON.stringify(me)); } catch {}
-      return me;
-    } catch {
-      setAdmin(null);
-      return null;
-    }
-  }, []);
-
   return (
     <AuthContext.Provider
       value={{
@@ -73,7 +62,6 @@ export function AuthProvider({ children }) {
         bootstrapping,
         login,
         logout,
-        refreshAdmin,
       }}
     >
       {children}
