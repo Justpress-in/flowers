@@ -1,5 +1,70 @@
 .detail-page { padding: 2rem 0 5rem; }
 
+.detail-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.detail-qty > button {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text);
+}
+.detail-qty > button:hover:not(:disabled) { background: #fdf0eb; color: var(--primary); }
+.detail-qty > button:disabled { opacity: 0.45; cursor: not-allowed; }
+.detail-qty > span:not(.detail-line-total) {
+  min-width: 26px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+.detail-line-total {
+  margin-left: 0.85rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.detail-line-total strong { color: var(--primary); margin-left: 0.25rem; }
+
+.detail-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+}
+
+.detail-added {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+}
+.detail-cta {
+  flex: 1;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1rem !important;
+  font-size: 0.95rem;
+}
+
 .back-btn {
   display: inline-flex;
   align-items: center;
