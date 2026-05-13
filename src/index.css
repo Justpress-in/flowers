@@ -38,6 +38,9 @@ input, textarea, select {
 
 .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
 
+@keyframes bn-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spin { animation: bn-spin 0.9s linear infinite; display: inline-block; vertical-align: middle; }
+
 .btn {
   display: inline-flex;
   align-items: center;

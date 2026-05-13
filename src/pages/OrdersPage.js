@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { orders as ordersApi } from '../api/endpoints';
 import {
   PackageOpen, Gift, User, MapPin, CalendarDays,
-  Printer, ExternalLink, Truck,
+  Printer, ExternalLink, Truck, Loader2,
 } from 'lucide-react';
 import './OrdersPage.css';
 
@@ -113,7 +115,49 @@ function OrderCard({ order }) {
 
 export default function OrdersPage() {
   const { state } = useApp();
-  const orders = [...state.orders].reverse();
+  const { isAuthenticated } = useAuth();
+  const [guestOrders, setGuestOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (isAuthenticated) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+      let ids = [];
+      try {
+        const raw = localStorage.getItem('bn_order_ids');
+        ids = raw ? JSON.parse(raw) : [];
+      } catch {}
+      if (!Array.isArray(ids) || ids.length === 0) {
+        if (!cancelled) { setGuestOrders([]); setLoading(false); }
+        return;
+      }
+      const results = await Promise.all(
+        ids.map((id) => ordersApi.get(id).catch(() => null))
+      );
+      if (cancelled) return;
+      setGuestOrders(results.filter(Boolean));
+      setLoading(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [isAuthenticated]);
+
+  const orders = isAuthenticated ? state.orders : guestOrders;
+
+  if (loading) {
+    return (
+      <div className="container orders-empty">
+        <div className="orders-empty-inner">
+          <Loader2 className="spin" size={24} />
+          <p>Loading orders…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -135,7 +179,7 @@ export default function OrdersPage() {
       <h1 className="section-title">My Orders</h1>
       <p className="section-subtitle">{orders.length} order{orders.length !== 1 ? 's' : ''} placed</p>
       <div className="orders-list">
-        {orders.map(order => <OrderCard key={order.id} order={order} />)}
+        {orders.map((order) => <OrderCard key={order.id} order={order} />)}
       </div>
     </div>
   );

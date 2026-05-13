@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
@@ -31,10 +32,12 @@ function Layout() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <Layout />
-      </BrowserRouter>
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <BrowserRouter>
+          <Layout />
+        </BrowserRouter>
+      </AppProvider>
+    </AuthProvider>
   );
 }

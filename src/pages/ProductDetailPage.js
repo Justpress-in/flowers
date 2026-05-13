@@ -7,7 +7,10 @@ import './ProductDetailPage.css';
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { state, dispatch } = useApp();
+  const { state, actions } = useApp();
+  const [placing, setPlacing] = useState(false);
+  const [placedOrder, setPlacedOrder] = useState(null);
+  const [placeError, setPlaceError] = useState('');
 
   const product = state.products.find(p => p.id === id);
 
@@ -34,7 +37,10 @@ export default function ProductDetailPage() {
     expiry: '',
     cvv: '',
   });
-  const [ordered, setOrdered] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const ordered = !!placedOrder;
 
   if (!product) {
     return (
@@ -72,29 +78,42 @@ export default function ProductDetailPage() {
     setPaymentStep(true);
   }
 
-  function placeOrder(e) {
+  async function placeOrder(e) {
     e.preventDefault();
+    setPlaceError('');
     const { cardName, cardNumber, expiry, cvv } = paymentForm;
-    if (!cardName || !cardNumber || !expiry || !cvv) { alert('Please fill all payment details.'); return; }
+    if (!cardName || !cardNumber || !expiry || !cvv) {
+      setPlaceError('Please fill all payment details.');
+      return;
+    }
 
-    const orderId = 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-    const order = {
-      id: orderId,
-      productId: product.id,
-      productName: product.name,
-      storeId: selectedStore,
-      storeName: state.stores.find(s => s.id === selectedStore)?.name,
-      type: orderType,
-      color: selectedColor,
-      size: selectedSize,
-      customDescription: customDesc,
-      giftDetails: orderType === 'gift' ? giftForm : null,
-      price,
-      date: new Date().toISOString(),
-      status: 'Confirmed',
-    };
-    dispatch({ type: 'PLACE_ORDER', payload: order });
-    setOrdered(true);
+    setPlacing(true);
+    try {
+      const created = await actions.placeOrder({
+        productId: product.id,
+        storeId: selectedStore,
+        type: orderType,
+        color: selectedColor,
+        size: selectedSize,
+        customDescription: customDesc,
+        giftDetails: orderType === 'gift' ? giftForm : null,
+        price,
+        customerName,
+        customerPhone,
+        customerEmail,
+      });
+      try {
+        const raw = localStorage.getItem('bn_order_ids');
+        const list = raw ? JSON.parse(raw) : [];
+        if (!list.includes(created.id)) list.unshift(created.id);
+        localStorage.setItem('bn_order_ids', JSON.stringify(list.slice(0, 50)));
+      } catch {}
+      setPlacedOrder(created);
+    } catch (err) {
+      setPlaceError(err.message || 'Could not place order. Please try again.');
+    } finally {
+      setPlacing(false);
+    }
   }
 
   if (ordered) {
@@ -161,7 +180,14 @@ export default function ProductDetailPage() {
                 <input value={paymentForm.cvv} onChange={e => setPaymentForm(f => ({ ...f, cvv: e.target.value }))} placeholder="123" maxLength={4} type="password" />
               </div>
             </div>
-            <button type="submit" className="btn btn-primary btn-full">Confirm & Pay ${price}</button>
+            {placeError && (
+              <div className="al-error" style={{ marginBottom: '0.75rem' }}>
+                {placeError}
+              </div>
+            )}
+            <button type="submit" className="btn btn-primary btn-full" disabled={placing}>
+              {placing ? 'Placing order…' : `Confirm & Pay $${price}`}
+            </button>
           </form>
         </div>
       </div>
@@ -300,6 +326,21 @@ export default function ProductDetailPage() {
               <div className="order-form-header">
                 <h3>{orderType === 'gift' ? 'Recipient Details' : 'Personal Order'}</h3>
                 <button type="button" className="btn btn-ghost" style={{ padding: '0.3rem 0.7rem', fontSize: '0.8rem' }} onClick={() => setOrderType(null)}>Change</button>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Your Name</label>
+                  <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Full name" />
+                </div>
+                <div className="form-group">
+                  <label>Your Phone</label>
+                  <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="+1 234 567 8900" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Email (optional, for receipt)</label>
+                <input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="you@example.com" />
               </div>
 
               {orderType === 'gift' && (

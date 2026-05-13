@@ -1,29 +1,28 @@
 import React, { useState } from 'react';
 import { Flower2, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './AdminLogin.css';
 
-const ADMIN_EMAIL = 'admin@flowers.com';
-const ADMIN_PASS  = 'admin';
-
 export default function AdminLogin({ onLogin }) {
+  const { login } = useAuth();
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
-    setTimeout(() => {
-      if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
-        onLogin();
-      } else {
-        setError('Invalid email or password. Please try again.');
-      }
+    try {
+      await login(email, password);
+      onLogin?.();
+    } catch (err) {
+      setError(err.message || 'Invalid email or password. Please try again.');
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   }
 
   return (
