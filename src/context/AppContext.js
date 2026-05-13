@@ -104,6 +104,10 @@ export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { isAuthenticated, bootstrapping } = useAuth();
   const loadedRef = useRef({ orders: false });
+  const productsRef = useRef(state.products);
+  const storesRef = useRef(state.stores);
+  useEffect(() => { productsRef.current = state.products; }, [state.products]);
+  useEffect(() => { storesRef.current = state.stores; }, [state.stores]);
 
   useEffect(() => {
     let cancelled = false;
@@ -260,7 +264,7 @@ export function AppProvider({ children }) {
   );
 
   return (
-    <AppContext.Provider value={{ state, dispatch, actions }}>
+    <AppContext.Provider value={{ state, dispatch, actions, productsRef, storesRef }}>
       {children}
     </AppContext.Provider>
   );
