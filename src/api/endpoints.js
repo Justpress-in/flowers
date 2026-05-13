@@ -64,7 +64,7 @@ export const cart = {
   merge: (items) => userApi.post('/cart/merge', { items }),
 };
 
-// ── Admin-managed resources ────────────────────────────────────────────
+// ── Products / stores / orders / events / banners ─────────────────────
 export const products = {
   list: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
@@ -117,6 +117,15 @@ export const admins = {
   remove: (id) => api.del(`/admins/${id}`),
 };
 
+export const adminUsers = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/admin-users${qs ? `?${qs}` : ''}`);
+  },
+  get: (id) => api.get(`/admin-users/${id}`),
+  remove: (id) => api.del(`/admin-users/${id}`),
+};
+
 export const upload = {
   single: (file) => {
     const fd = new FormData();
@@ -128,4 +137,103 @@ export const upload = {
     Array.from(files).forEach((f) => fd.append('images', f));
     return api.post('/upload/multiple', fd);
   },
+};
+
+// ── Settings ───────────────────────────────────────────────────────────
+export const settings = {
+  get: () => api.get('/settings'),
+  update: (body) => api.put('/settings', body),
+};
+
+// ── Coupons ────────────────────────────────────────────────────────────
+export const coupons = {
+  list: () => api.get('/coupons'),
+  create: (body) => api.post('/coupons', body),
+  update: (id, body) => api.put(`/coupons/${id}`, body),
+  remove: (id) => api.del(`/coupons/${id}`),
+  publicList: () => api.get('/coupons/public'),
+  redeem: (code) => userApi.post('/coupons/redeem', { code }),
+};
+
+// ── Packages ───────────────────────────────────────────────────────────
+export const packages = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/packages${qs ? `?${qs}` : ''}`);
+  },
+  get: (id) => api.get(`/packages/${id}`),
+  create: (body) => api.post('/packages', body),
+  update: (id, body) => api.put(`/packages/${id}`, body),
+  remove: (id) => api.del(`/packages/${id}`),
+};
+
+// ── Reviews ────────────────────────────────────────────────────────────
+export const reviews = {
+  forProduct: (productId) => api.get(`/reviews/product/${productId}`),
+  create: (body) => userApi.post('/reviews', body),
+  listMine: () => userApi.get('/reviews/mine'),
+  removeMine: (id) => userApi.del(`/reviews/mine/${id}`),
+  listAll: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/reviews${qs ? `?${qs}` : ''}`);
+  },
+  updateStatus: (id, body) => api.patch(`/reviews/${id}/status`, body),
+  remove: (id) => api.del(`/reviews/${id}`),
+};
+
+// ── Blogs ──────────────────────────────────────────────────────────────
+export const blogs = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/blogs${qs ? `?${qs}` : ''}`);
+  },
+  get: (id) => api.get(`/blogs/${id}`),
+  create: (body) => api.post('/blogs', body),
+  update: (id, body) => api.put(`/blogs/${id}`, body),
+  remove: (id) => api.del(`/blogs/${id}`),
+};
+
+// ── Offers ─────────────────────────────────────────────────────────────
+export const offers = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/offers${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => api.post('/offers', body),
+  update: (id, body) => api.put(`/offers/${id}`, body),
+  remove: (id) => api.del(`/offers/${id}`),
+};
+
+// ── Testimonials ───────────────────────────────────────────────────────
+export const testimonials = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/testimonials${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => api.post('/testimonials', body),
+  update: (id, body) => api.put(`/testimonials/${id}`, body),
+  remove: (id) => api.del(`/testimonials/${id}`),
+};
+
+// ── Delivery partners ─────────────────────────────────────────────────
+export const deliveryPartners = {
+  list: () => api.get('/delivery-partners'),
+  create: (body) => api.post('/delivery-partners', body),
+  update: (id, body) => api.put(`/delivery-partners/${id}`, body),
+  remove: (id) => api.del(`/delivery-partners/${id}`),
+};
+
+// ── Bookings ───────────────────────────────────────────────────────────
+export const bookings = {
+  create: (body) => {
+    // Anyone (guest or user) can create — userApi is fine, it just attaches user token if present
+    return userApi.post('/bookings', body);
+  },
+  listAll: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/bookings${qs ? `?${qs}` : ''}`);
+  },
+  listMine: () => userApi.get('/bookings/mine'),
+  update: (id, body) => api.put(`/bookings/${id}`, body),
+  remove: (id) => api.del(`/bookings/${id}`),
 };
