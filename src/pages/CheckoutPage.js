@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useUserAuth } from '../context/UserAuthContext';
-import { orders as ordersApi } from '../api/endpoints';
+import { orders as ordersApi, coupons as couponsApi } from '../api/endpoints';
+import { Ticket, X as XIcon, CheckCircle2 as CheckMark } from 'lucide-react';
 import './CheckoutPage.css';
 
 export default function CheckoutPage() {
@@ -21,6 +22,38 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(null);
+
+  // Coupon state
+  const [couponInput, setCouponInput] = useState('');
+  const [applying, setApplying] = useState(false);
+  const [coupon, setCoupon] = useState(null); // { code, discount, description, type, value, total }
+  const [couponError, setCouponError] = useState('');
+  const [publicCoupons, setPublicCoupons] = useState([]);
+
+  useEffect(() => {
+    couponsApi.publicList().then(setPublicCoupons).catch(() => {});
+  }, []);
+
+  async function applyCoupon(codeOverride) {
+    const code = (codeOverride || couponInput || '').trim();
+    if (!code) return;
+    setApplying(true); setCouponError('');
+    try {
+      const result = await couponsApi.redeem(code);
+      setCoupon(result);
+      setCouponInput(result.code);
+    } catch (err) {
+      setCoupon(null);
+      setCouponError(err.message || 'Invalid coupon');
+    } finally {
+      setApplying(false);
+    }
+  }
+  function removeCoupon() {
+    setCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+  }
 
   // Prefill from user profile when available
   useEffect(() => {
@@ -76,6 +109,7 @@ export default function CheckoutPage() {
         customerPhone: customer.phone,
         customerEmail: customer.email,
         giftDetails: orderType === 'gift' ? gift : null,
+        couponCode: coupon?.code || undefined,
       });
       try {
         const raw = localStorage.getItem('bn_order_ids');
@@ -252,7 +286,7 @@ export default function CheckoutPage() {
             )}
 
             <button type="submit" className="btn btn-primary btn-full checkout-submit-btn" disabled={placing}>
-              {placing ? 'Placing order…' : `Confirm & Pay $${subtotal.toFixed(2)}`}
+              {placing ? 'Placing order…' : `Confirm & Pay $${Math.max(0, subtotal - (coupon?.discount || 0)).toFixed(2)}`}
             </button>
           </form>
         </div>
@@ -280,9 +314,57 @@ export default function CheckoutPage() {
             <span>Delivery</span>
             <strong>Free</strong>
           </div>
+
+          {/* Coupon */}
+          <div className="checkout-coupon">
+            <label style={{ fontSize: '0.78rem', fontWeight: 600, color: '#374151', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Ticket size={13} /> Coupon code
+            </label>
+            {!coupon ? (
+              <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.35rem' }}>
+                <input
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  placeholder="Enter code"
+                  style={{ flex: 1, padding: '0.55rem 0.7rem', border: '1px solid #d1d5db', borderRadius: 7, fontSize: '0.85rem', textTransform: 'uppercase' }}
+                />
+                <button type="button" className="btn btn-secondary" onClick={() => applyCoupon()} disabled={applying || !couponInput}>
+                  {applying ? '…' : 'Apply'}
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#dcfce7', color: '#15803d', padding: '0.5rem 0.75rem', borderRadius: 7, fontSize: '0.85rem' }}>
+                <span><CheckMark size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} /><strong>{coupon.code}</strong> applied — saved ${coupon.discount.toFixed(2)}</span>
+                <button type="button" onClick={removeCoupon} style={{ background: 'none', border: 'none', color: '#15803d', cursor: 'pointer' }}><XIcon size={14} /></button>
+              </div>
+            )}
+            {couponError && <p style={{ fontSize: '0.78rem', color: '#b91c1c', marginTop: '0.35rem' }}>{couponError}</p>}
+            {publicCoupons.length > 0 && !coupon && (
+              <div style={{ marginTop: '0.45rem', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {publicCoupons.slice(0, 3).map((c) => (
+                  <button
+                    key={c.code}
+                    type="button"
+                    onClick={() => applyCoupon(c.code)}
+                    style={{ background: '#fdf0eb', color: '#c1440e', border: '1px dashed #c1440e', borderRadius: 6, padding: '0.2rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer' }}
+                    title={c.description}
+                  >
+                    {c.code} — {c.type === 'percent' ? `${c.value}% off` : `$${c.value} off`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {coupon && (
+            <div className="checkout-summary-row" style={{ color: '#15803d' }}>
+              <span>Discount</span>
+              <strong>−${coupon.discount.toFixed(2)}</strong>
+            </div>
+          )}
           <div className="checkout-summary-total">
             <span>Total</span>
-            <strong>${subtotal.toFixed(2)}</strong>
+            <strong>${Math.max(0, subtotal - (coupon?.discount || 0)).toFixed(2)}</strong>
           </div>
         </aside>
       </div>
