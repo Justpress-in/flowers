@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import WhatsAppQR from '../components/WhatsAppQR';
+import PackagesSection from '../components/PackagesSection';
 import {
   Flower2, Gift, PartyPopper,
   ArrowRight, Star, MapPin, Package,
@@ -313,6 +314,7 @@ export default function CategoryPage({ category }) {
             </>
           )}
 
+          {category === 'parties' && <PackagesSection />}
           {category === 'parties' && <WhatsAppQR />}
         </div>
       </div>
