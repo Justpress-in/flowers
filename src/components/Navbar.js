@@ -35,6 +35,7 @@ export default function Navbar() {
           <Link to="/flowers" className={isActive('/flowers') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Flowers</Link>
           <Link to="/gifts" className={isActive('/gifts') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Gifts</Link>
           <Link to="/parties" className={isActive('/parties') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Parties & Events</Link>
+          <Link to="/blog" className={isActive('/blog') ? 'active' : ''} onClick={() => setMenuOpen(false)}>Blog</Link>
 
           <Link to="/cart" className={`navbar-cart-link ${isActive('/cart') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
             <ShoppingCart size={17} />
