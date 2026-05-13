@@ -144,7 +144,7 @@ export function AppProvider({ children }) {
       if (loadedRef.current.orders) return;
       dispatch({ type: 'SET_LOADING', key: 'orders', value: true });
       try {
-        const list = await ordersApi.list();
+        const list = await ordersApi.listAll();
         if (cancelled) return;
         dispatch({ type: 'SET_ORDERS', payload: list });
         loadedRef.current.orders = true;
@@ -174,7 +174,7 @@ export function AppProvider({ children }) {
         return list;
       }
       case 'orders': {
-        const list = await ordersApi.list();
+        const list = await ordersApi.listAll();
         dispatch({ type: 'SET_ORDERS', payload: list });
         return list;
       }
@@ -239,16 +239,6 @@ export function AppProvider({ children }) {
       },
 
       // orders
-      async placeOrder(payload) {
-        const created = await ordersApi.create(payload);
-        dispatch({ type: 'PLACE_ORDER', payload: created });
-        // refresh products to reflect new stock
-        try {
-          const list = await productsApi.list();
-          dispatch({ type: 'SET_PRODUCTS', payload: list });
-        } catch {}
-        return created;
-      },
       async updateOrderStatus(id, payload) {
         const updated = await ordersApi.updateStatus(id, payload);
         dispatch({
