@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
-import { useAuth } from '../context/AuthContext';
+import { useUserAuth } from '../context/UserAuthContext';
 import { orders as ordersApi } from '../api/endpoints';
 import {
   PackageOpen, Gift, User, MapPin, CalendarDays,
@@ -38,6 +37,7 @@ function OrderCard({ order }) {
         <div class="row"><span class="label">Status</span><span class="badge">${order.status}</span></div>
         <hr/>
         <div class="row"><span class="label">Product</span><span>${order.productName}</span></div>
+        <div class="row"><span class="label">Quantity</span><span>${order.quantity || 1}</span></div>
         ${order.color ? `<div class="row"><span class="label">Color</span><span>${order.color}</span></div>` : ''}
         <div class="row"><span class="label">Store</span><span>${order.storeName}</span></div>
         ${order.customDescription ? `<div class="row"><span class="label">Note</span><span>${order.customDescription}</span></div>` : ''}
@@ -75,8 +75,9 @@ function OrderCard({ order }) {
 
       <div className="order-card-body">
         <div className="order-info">
-          <h3>{order.productName}</h3>
+          <h3>{order.productName}{order.quantity > 1 && <span style={{ fontWeight: 400, color: '#666' }}> × {order.quantity}</span>}</h3>
           {order.color && <p>Color: <strong>{order.color}</strong></p>}
+          {order.size && <p>Size: <strong>{order.size}</strong></p>}
           <p>Store: <strong>{order.storeName}</strong></p>
           {order.customDescription && <p className="order-custom-desc">Note: "{order.customDescription}"</p>}
         </div>
@@ -114,41 +115,47 @@ function OrderCard({ order }) {
 }
 
 export default function OrdersPage() {
-  const { state } = useApp();
-  const { isAuthenticated } = useAuth();
-  const [guestOrders, setGuestOrders] = useState([]);
+  const { isAuthenticated, bootstrapping, openAuthModal } = useUserAuth();
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    if (bootstrapping) return;
     let cancelled = false;
+
     async function load() {
-      if (isAuthenticated) {
-        if (!cancelled) setLoading(false);
-        return;
-      }
-      let ids = [];
+      setLoading(true);
+      setError('');
       try {
-        const raw = localStorage.getItem('bn_order_ids');
-        ids = raw ? JSON.parse(raw) : [];
-      } catch {}
-      if (!Array.isArray(ids) || ids.length === 0) {
-        if (!cancelled) { setGuestOrders([]); setLoading(false); }
-        return;
+        if (isAuthenticated) {
+          const list = await ordersApi.listMine();
+          if (!cancelled) setOrders(list);
+        } else {
+          // Fall back to localStorage order IDs (for guests who ordered before signing in)
+          let ids = [];
+          try {
+            const raw = localStorage.getItem('bn_order_ids');
+            ids = raw ? JSON.parse(raw) : [];
+          } catch {}
+          if (!Array.isArray(ids) || ids.length === 0) {
+            if (!cancelled) setOrders([]);
+            return;
+          }
+          const results = await Promise.all(ids.map((id) => ordersApi.get(id).catch(() => null)));
+          if (!cancelled) setOrders(results.filter(Boolean));
+        }
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      const results = await Promise.all(
-        ids.map((id) => ordersApi.get(id).catch(() => null))
-      );
-      if (cancelled) return;
-      setGuestOrders(results.filter(Boolean));
-      setLoading(false);
     }
     load();
     return () => { cancelled = true; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, bootstrapping]);
 
-  const orders = isAuthenticated ? state.orders : guestOrders;
-
-  if (loading) {
+  if (loading || bootstrapping) {
     return (
       <div className="container orders-empty">
         <div className="orders-empty-inner">
@@ -167,7 +174,10 @@ export default function OrdersPage() {
             <PackageOpen size={52} strokeWidth={1.2} color="var(--text-muted)" />
           </div>
           <h2>No orders yet</h2>
-          <p>Your order history will appear here once you place an order.</p>
+          <p>{isAuthenticated ? 'Your order history will appear here once you place an order.' : 'Sign in to see all your past orders.'}</p>
+          {!isAuthenticated && (
+            <button className="btn btn-secondary" onClick={() => openAuthModal({ mode: 'login' })}>Sign In</button>
+          )}
           <Link to="/" className="btn btn-primary">Start Shopping</Link>
         </div>
       </div>
@@ -177,7 +187,10 @@ export default function OrdersPage() {
   return (
     <div className="container orders-page">
       <h1 className="section-title">My Orders</h1>
-      <p className="section-subtitle">{orders.length} order{orders.length !== 1 ? 's' : ''} placed</p>
+      <p className="section-subtitle">
+        {orders.length} order{orders.length !== 1 ? 's' : ''} placed
+        {error && <span style={{ marginLeft: '0.5rem', color: '#b91c1c' }}>· {error}</span>}
+      </p>
       <div className="orders-list">
         {orders.map((order) => <OrderCard key={order.id} order={order} />)}
       </div>
