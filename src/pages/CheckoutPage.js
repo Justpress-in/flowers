@@ -16,7 +16,7 @@ export default function CheckoutPage() {
   const { user, isAuthenticated, bootstrapping, openAuthModal } = useUserAuth();
 
   const [orderType, setOrderType] = useState('personal');
-  const [customer, setCustomer] = useState({ name: '', phone: '', email: '' });
+  const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '' });
   const [gift, setGift] = useState({ receiverName: '', receiverPhone: '', receiverAddress: '', giftMessage: '' });
   const [payment, setPayment] = useState({ cardName: '', cardNumber: '', expiry: '', cvv: '' });
   const [error, setError] = useState('');
@@ -62,6 +62,7 @@ export default function CheckoutPage() {
         name: c.name || user.name || '',
         phone: c.phone || user.phone || '',
         email: c.email || user.email || '',
+        address: c.address || user.address || '',
       }));
     }
   }, [user]);
@@ -95,6 +96,9 @@ export default function CheckoutPage() {
         setError('Please fill all receiver details for gift orders.');
         return;
       }
+    } else if (!customer.address || !customer.address.trim()) {
+      setError('Please enter a delivery address.');
+      return;
     }
     const { cardName, cardNumber, expiry, cvv } = payment;
     if (!cardName || !cardNumber || !expiry || !cvv) {
@@ -108,6 +112,7 @@ export default function CheckoutPage() {
         customerName: customer.name,
         customerPhone: customer.phone,
         customerEmail: customer.email,
+        customerAddress: customer.address,
         giftDetails: orderType === 'gift' ? gift : null,
         couponCode: coupon?.code || undefined,
       });
@@ -233,6 +238,18 @@ export default function CheckoutPage() {
                 <label>Email</label>
                 <input name="email" type="email" value={customer.email} onChange={handleCustomer} placeholder="you@example.com" />
               </div>
+              {orderType === 'personal' && (
+                <div className="form-group">
+                  <label>Delivery Address *</label>
+                  <textarea
+                    name="address"
+                    rows={2}
+                    value={customer.address}
+                    onChange={handleCustomer}
+                    placeholder="Street, city, postal code"
+                  />
+                </div>
+              )}
             </section>
 
             {orderType === 'gift' && (

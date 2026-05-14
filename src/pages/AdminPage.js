@@ -21,6 +21,8 @@ import {
   OffersTab, TestimonialsTab, DeliveryPartnersTab, BannersTab,
   BookingsTab, ReviewsTab,
 } from '../components/admin/AdminTabs';
+import { exportToCsv } from '../components/admin/exportCsv';
+import { Eye, Download } from 'lucide-react';
 import './AdminPage.css';
 
 const EMPTY_PRODUCT = {
@@ -76,7 +78,9 @@ export default function AdminPage() {
   const [showForm, setShowForm]       = useState(false);
   const [editingId, setEditingId]     = useState(null);
   const [form, setForm]               = useState(EMPTY_PRODUCT);
-  const [storeRow, setStoreRow]       = useState({ storeId: '', price: '', stock: '' });
+  const [storeRow, setStoreRow]       = useState({
+    storeId: '', stockPrice: '', basePrice: '', offeredPrice: '', discountPercent: '', stock: '',
+  });
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
 
@@ -103,6 +107,7 @@ export default function AdminPage() {
   // order status form
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [orderForm, setOrderForm] = useState({ status: 'Confirmed', trackingUrl: '' });
+  const [viewingOrder, setViewingOrder] = useState(null);
 
   useEffect(() => {
     if (!banner) return;
@@ -176,19 +181,37 @@ export default function AdminPage() {
     setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   }
   function addStoreRow() {
-    if (!storeRow.storeId || !storeRow.price || !storeRow.stock) return;
+    if (!storeRow.storeId || !storeRow.basePrice || !storeRow.stock) return;
+    const basePrice = +storeRow.basePrice;
+    const stockPrice = +storeRow.stockPrice || 0;
+    const discountPercent = +storeRow.discountPercent || 0;
+    // Prefer explicit offeredPrice; otherwise derive from discountPercent; otherwise = basePrice.
+    let offeredPrice = storeRow.offeredPrice !== '' ? +storeRow.offeredPrice : null;
+    if (offeredPrice == null) {
+      offeredPrice = discountPercent > 0
+        ? Math.max(0, basePrice - (basePrice * discountPercent) / 100)
+        : basePrice;
+    }
+    const derivedPct = (!discountPercent && basePrice > 0 && offeredPrice < basePrice)
+      ? Math.round(((basePrice - offeredPrice) / basePrice) * 100)
+      : discountPercent;
+    const row = {
+      storeId: storeRow.storeId,
+      stockPrice,
+      basePrice,
+      offeredPrice,
+      discountPercent: derivedPct,
+      price: offeredPrice,
+      stock: +storeRow.stock,
+    };
     const exists = form.storeInventory.find((s) => s.storeId === storeRow.storeId);
     setForm((f) => ({
       ...f,
       storeInventory: exists
-        ? f.storeInventory.map((s) =>
-            s.storeId === storeRow.storeId
-              ? { storeId: storeRow.storeId, price: +storeRow.price, stock: +storeRow.stock }
-              : s
-          )
-        : [...f.storeInventory, { storeId: storeRow.storeId, price: +storeRow.price, stock: +storeRow.stock }],
+        ? f.storeInventory.map((s) => (s.storeId === storeRow.storeId ? row : s))
+        : [...f.storeInventory, row],
     }));
-    setStoreRow({ storeId: '', price: '', stock: '' });
+    setStoreRow({ storeId: '', stockPrice: '', basePrice: '', offeredPrice: '', discountPercent: '', stock: '' });
   }
   function removeStoreRow(id) {
     setForm((f) => ({ ...f, storeInventory: f.storeInventory.filter((s) => s.storeId !== id) }));
@@ -751,16 +774,52 @@ export default function AdminPage() {
             <div className="adm-section">
               <div className="adm-section-header">
                 <h2>Orders <span className="adm-count-badge">{state.orders.length}</span></h2>
-                <button
-                  className="btn btn-ghost"
-                  onClick={async () => {
-                    try { await actions.refetch('orders'); }
-                    catch (err) { setBanner({ type: 'error', text: err.message }); }
-                  }}
-                  disabled={busy}
-                >
-                  <RefreshCw size={14} /> Refresh
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() => exportToCsv(
+                      `orders-${new Date().toISOString().slice(0, 10)}.csv`,
+                      state.orders.map((o) => ({
+                        OrderID: o.id,
+                        Date: o.date ? new Date(o.date).toLocaleString() : '',
+                        Type: o.type,
+                        Status: o.status,
+                        Product: o.productName,
+                        Quantity: o.quantity,
+                        Color: o.color,
+                        Size: o.size,
+                        Store: o.storeName,
+                        CustomerName: o.customerName,
+                        CustomerPhone: o.customerPhone,
+                        CustomerEmail: o.customerEmail,
+                        CustomerAddress: o.customerAddress,
+                        ReceiverName: o.giftDetails?.receiverName || '',
+                        ReceiverPhone: o.giftDetails?.receiverPhone || '',
+                        ReceiverAddress: o.giftDetails?.receiverAddress || '',
+                        GiftMessage: o.giftDetails?.giftMessage || '',
+                        UnitPrice: o.unitPrice,
+                        BasePrice: o.basePrice,
+                        Coupon: o.couponCode,
+                        Discount: o.discount,
+                        Total: o.price,
+                        TrackingURL: o.trackingUrl,
+                      }))
+                    )}
+                    disabled={busy || state.orders.length === 0}
+                  >
+                    <Download size={14} /> Export Excel
+                  </button>
+                  <button
+                    className="btn btn-ghost"
+                    onClick={async () => {
+                      try { await actions.refetch('orders'); }
+                      catch (err) { setBanner({ type: 'error', text: err.message }); }
+                    }}
+                    disabled={busy}
+                  >
+                    <RefreshCw size={14} /> Refresh
+                  </button>
+                </div>
               </div>
               {state.orders.length === 0 ? (
                 <div className="adm-empty-lg">No orders placed yet.</div>
@@ -774,7 +833,10 @@ export default function AdminPage() {
                       <strong>${o.price}</strong>
                       <span>{new Date(o.date).toLocaleDateString()}</span>
                       <span className="badge badge-green">{o.status}</span>
-                      <button className="btn btn-ghost" onClick={() => openEditOrder(o)}><Truck size={13} /> Update</button>
+                      <div className="adm-row-actions" style={{ display: 'flex', gap: '0.3rem' }}>
+                        <button className="btn btn-ghost" onClick={() => setViewingOrder(o)}><Eye size={13} /> View</button>
+                        <button className="btn btn-ghost" onClick={() => openEditOrder(o)}><Truck size={13} /> Update</button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -835,6 +897,97 @@ export default function AdminPage() {
 
         </div>
       </div>
+
+      {/* ── Order Details Modal ── */}
+      {viewingOrder && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setViewingOrder(null)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Order {viewingOrder.id}</h2>
+              <button className="modal-close" onClick={() => setViewingOrder(null)}><X size={18} /></button>
+            </div>
+            <div className="modal-form">
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <span className={`badge ${viewingOrder.type === 'gift' ? 'badge-blue' : 'badge-green'}`}>{viewingOrder.type}</span>
+                <span className="badge badge-green">{viewingOrder.status}</span>
+                <span style={{ fontSize: '0.78rem', color: '#888' }}>
+                  {viewingOrder.date ? new Date(viewingOrder.date).toLocaleString() : ''}
+                </span>
+              </div>
+
+              <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Product</legend>
+                <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
+                  {viewingOrder.productImage && (
+                    <img src={viewingOrder.productImage} alt="" style={{ width: 64, height: 64, borderRadius: 6, objectFit: 'cover' }} />
+                  )}
+                  <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                    <strong>{viewingOrder.productName}</strong>
+                    <p style={{ color: '#666' }}>Store: {viewingOrder.storeName}</p>
+                    <p style={{ color: '#666' }}>Qty: {viewingOrder.quantity} {viewingOrder.color ? `· ${viewingOrder.color}` : ''} {viewingOrder.size ? `· ${viewingOrder.size}` : ''}</p>
+                    {viewingOrder.customDescription && (
+                      <p style={{ color: '#666' }}>Custom: {viewingOrder.customDescription}</p>
+                    )}
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Customer</legend>
+                <p style={{ fontSize: '0.85rem' }}><strong>{viewingOrder.customerName || '—'}</strong></p>
+                <p style={{ fontSize: '0.82rem', color: '#555' }}><Phone size={11} /> {viewingOrder.customerPhone || '—'}</p>
+                <p style={{ fontSize: '0.82rem', color: '#555' }}><Mail size={11} /> {viewingOrder.customerEmail || '—'}</p>
+                {viewingOrder.customerAddress && (
+                  <p style={{ fontSize: '0.82rem', color: '#555' }}><MapPin size={11} /> {viewingOrder.customerAddress}</p>
+                )}
+              </fieldset>
+
+              {viewingOrder.giftDetails && (
+                <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                  <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Gift Recipient</legend>
+                  <p style={{ fontSize: '0.85rem' }}><strong>{viewingOrder.giftDetails.receiverName}</strong></p>
+                  <p style={{ fontSize: '0.82rem', color: '#555' }}><Phone size={11} /> {viewingOrder.giftDetails.receiverPhone}</p>
+                  <p style={{ fontSize: '0.82rem', color: '#555' }}><MapPin size={11} /> {viewingOrder.giftDetails.receiverAddress}</p>
+                  {viewingOrder.giftDetails.giftMessage && (
+                    <p style={{ fontSize: '0.82rem', color: '#555', fontStyle: 'italic' }}>"{viewingOrder.giftDetails.giftMessage}"</p>
+                  )}
+                </fieldset>
+              )}
+
+              <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Pricing</legend>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: '0.3rem', fontSize: '0.85rem' }}>
+                  <span>Unit price</span><strong>${Number(viewingOrder.unitPrice || 0).toFixed(2)}</strong>
+                  {viewingOrder.basePrice > 0 && (<><span>Base / MRP</span><strong>${Number(viewingOrder.basePrice).toFixed(2)}</strong></>)}
+                  {viewingOrder.couponCode && (<><span>Coupon</span><strong>{viewingOrder.couponCode}</strong></>)}
+                  {viewingOrder.discount > 0 && (<><span>Discount</span><strong>-${Number(viewingOrder.discount).toFixed(2)}</strong></>)}
+                  <span>Total</span><strong style={{ color: '#c1440e' }}>${Number(viewingOrder.price || 0).toFixed(2)}</strong>
+                </div>
+              </fieldset>
+
+              {viewingOrder.trackingUrl && (
+                <p style={{ fontSize: '0.82rem' }}>
+                  Tracking:{' '}
+                  <a href={viewingOrder.trackingUrl} target="_blank" rel="noopener noreferrer">
+                    {viewingOrder.trackingUrl}
+                  </a>
+                </p>
+              )}
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setViewingOrder(null)}>Close</button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => { openEditOrder(viewingOrder); setViewingOrder(null); }}
+                >
+                  <Truck size={13} /> Update status
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Order Update Modal ── */}
       {editingOrderId && (
@@ -1058,22 +1211,51 @@ export default function AdminPage() {
               </div>
               <div className="store-inventory-section">
                 <h4>Store Inventory *</h4>
+                <p style={{ fontSize: '0.78rem', color: '#777', marginBottom: '0.5rem' }}>
+                  Stock price = cost · Base price = MRP · Offered = selling price (auto from % if blank)
+                </p>
                 {form.storeInventory.map((si) => {
                   const store = state.stores.find((s) => s.id === si.storeId);
+                  const base = Number(si.basePrice || si.price || 0);
+                  const offered = Number(si.offeredPrice || si.price || 0);
+                  const pct = Number(si.discountPercent || 0);
                   return (
                     <div key={si.storeId} className="store-inv-row">
-                      <span>{store?.name || si.storeId}</span><span>${si.price}</span><span>{si.stock} units</span>
+                      <span><strong>{store?.name || si.storeId}</strong></span>
+                      <span style={{ fontSize: '0.78rem', color: '#666' }}>
+                        Cost: ${Number(si.stockPrice || 0).toFixed(2)}
+                      </span>
+                      <span style={{ fontSize: '0.78rem' }}>
+                        {pct > 0 ? (
+                          <>
+                            <span style={{ textDecoration: 'line-through', color: '#999' }}>${base.toFixed(2)}</span>
+                            {' '}<strong style={{ color: '#c1440e' }}>${offered.toFixed(2)}</strong>
+                            {' '}<span className="badge badge-orange">{pct}% off</span>
+                          </>
+                        ) : (
+                          <strong>${base.toFixed(2)}</strong>
+                        )}
+                      </span>
+                      <span>{si.stock} units</span>
                       <button type="button" className="btn btn-ghost text-danger" onClick={() => removeStoreRow(si.storeId)}>Remove</button>
                     </div>
                   );
                 })}
-                <div className="store-inv-add">
+                <div className="store-inv-add" style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1.4fr) repeat(5, 1fr) auto', gap: '0.4rem', alignItems: 'center' }}>
                   <select value={storeRow.storeId} onChange={(e) => setStoreRow((r) => ({ ...r, storeId: e.target.value }))}>
                     <option value="">Select store…</option>
                     {state.stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
-                  <input type="number" placeholder="Price ($)" value={storeRow.price} onChange={(e) => setStoreRow((r) => ({ ...r, price: e.target.value }))} min="0" />
-                  <input type="number" placeholder="Stock" value={storeRow.stock} onChange={(e) => setStoreRow((r) => ({ ...r, stock: e.target.value }))} min="0" />
+                  <input type="number" placeholder="Stock $" title="Stock / cost price" value={storeRow.stockPrice}
+                    onChange={(e) => setStoreRow((r) => ({ ...r, stockPrice: e.target.value }))} min="0" />
+                  <input type="number" placeholder="Base $" title="Base / MRP price" value={storeRow.basePrice}
+                    onChange={(e) => setStoreRow((r) => ({ ...r, basePrice: e.target.value }))} min="0" />
+                  <input type="number" placeholder="Offered $" title="Offered selling price (overrides %)" value={storeRow.offeredPrice}
+                    onChange={(e) => setStoreRow((r) => ({ ...r, offeredPrice: e.target.value }))} min="0" />
+                  <input type="number" placeholder="Disc %" title="Discount % (used if Offered is blank)" value={storeRow.discountPercent}
+                    onChange={(e) => setStoreRow((r) => ({ ...r, discountPercent: e.target.value }))} min="0" max="100" />
+                  <input type="number" placeholder="Stock" title="Quantity in stock" value={storeRow.stock}
+                    onChange={(e) => setStoreRow((r) => ({ ...r, stock: e.target.value }))} min="0" />
                   <button type="button" className="btn btn-secondary" onClick={addStoreRow}>Add</button>
                 </div>
               </div>

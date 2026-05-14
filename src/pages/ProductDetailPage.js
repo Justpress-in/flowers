@@ -130,6 +130,18 @@ export default function ProductDetailPage() {
 
           <div className="detail-price-row">
             <span className="detail-price">${price}</span>
+            {storeEntry?.basePrice > price && (
+              <>
+                <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '0.95rem', marginLeft: 8 }}>
+                  ${storeEntry.basePrice}
+                </span>
+                {storeEntry.discountPercent > 0 && (
+                  <span className="badge badge-orange" style={{ marginLeft: 6 }}>
+                    {storeEntry.discountPercent}% off
+                  </span>
+                )}
+              </>
+            )}
             <span
               className={`badge ${
                 totalStock > 10 ? 'badge-green' : totalStock > 0 ? 'badge-orange' : 'badge-red'

@@ -15,7 +15,9 @@ import {
 } from '../../api/endpoints';
 import {
   Mail, Phone, Loader2, AlertTriangle, CheckCircle2, Save, Star, X,
+  Eye, Download, MapPin, Calendar as CalIcon,
 } from 'lucide-react';
+import { exportToCsv } from './exportCsv';
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString();
@@ -329,6 +331,7 @@ export function BookingsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
 
   async function load() {
     setLoading(true); setError('');
@@ -346,6 +349,8 @@ export function BookingsTab() {
         adminNotes: editing.adminNotes,
         preferredDate: editing.preferredDate,
         preferredTime: editing.preferredTime,
+        basePrice: Number(editing.basePrice) || 0,
+        customerAddress: editing.customerAddress || '',
       });
       setItems((prev) => prev.map((b) => b.id === updated.id ? updated : b));
       setEditing(null);
@@ -357,10 +362,37 @@ export function BookingsTab() {
     catch (err) { alert(err.message); }
   }
 
+  function handleExport() {
+    exportToCsv(
+      `bookings-${new Date().toISOString().slice(0, 10)}.csv`,
+      items.map((b) => ({
+        BookingID: b.id,
+        CreatedAt: b.createdAt ? new Date(b.createdAt).toLocaleString() : '',
+        Status: b.status,
+        Service: b.serviceType,
+        Occasion: b.occasion,
+        CustomerName: b.customerName,
+        CustomerPhone: b.customerPhone,
+        CustomerEmail: b.customerEmail,
+        CustomerAddress: b.customerAddress,
+        Store: b.storeName,
+        PreferredDate: b.preferredDate ? new Date(b.preferredDate).toLocaleDateString() : '',
+        PreferredTime: b.preferredTime,
+        DurationMin: b.durationMin,
+        BasePrice: b.basePrice,
+        Notes: b.notes,
+        AdminNotes: b.adminNotes,
+      }))
+    );
+  }
+
   return (
     <div className="adm-section">
       <div className="adm-section-header">
         <h2>Bookings & Consultations <span className="adm-count-badge">{items.length}</span></h2>
+        <button className="btn btn-ghost" onClick={handleExport} disabled={items.length === 0}>
+          <Download size={14} /> Export Excel
+        </button>
       </div>
       {error && <div className="adm-alert" style={{ background: 'rgba(220,38,38,0.08)', color: '#b91c1c' }}><AlertTriangle size={16} /> {error}</div>}
       {loading ? (
@@ -383,7 +415,8 @@ export function BookingsTab() {
               <span>{fmtDate(b.preferredDate)}</span>
               <span>{b.preferredTime || '—'}</span>
               <span className={`badge ${b.status === 'confirmed' ? 'badge-green' : b.status === 'cancelled' ? 'badge-red' : 'badge-orange'}`}>{b.status}</span>
-              <div className="adm-row-actions">
+              <div className="adm-row-actions" style={{ display: 'flex', gap: '0.3rem' }}>
+                <button className="btn btn-ghost" onClick={() => setViewing(b)}><Eye size={13} /> View</button>
                 <button className="btn btn-ghost" onClick={() => setEditing(b)}>Edit</button>
                 <button className="btn btn-ghost adm-del-btn" onClick={() => deleteBooking(b.id)}>Delete</button>
               </div>
@@ -420,6 +453,25 @@ export function BookingsTab() {
                   {['requested','confirmed','completed','cancelled','rescheduled'].map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Base Price ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editing.basePrice ?? 0}
+                    onChange={(e) => setEditing({ ...editing, basePrice: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Customer Address</label>
+                  <input
+                    value={editing.customerAddress || ''}
+                    onChange={(e) => setEditing({ ...editing, customerAddress: e.target.value })}
+                    placeholder="Street, city, postal code"
+                  />
+                </div>
+              </div>
               <div className="form-group">
                 <label>Admin Notes</label>
                 <textarea rows={3} value={editing.adminNotes || ''} onChange={(e) => setEditing({ ...editing, adminNotes: e.target.value })} />
@@ -429,6 +481,66 @@ export function BookingsTab() {
                 <button type="submit" className="btn btn-primary">Save</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewing && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setViewing(null)}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>Booking {viewing.id}</h2>
+              <button className="modal-close" onClick={() => setViewing(null)}><X size={18} /></button>
+            </div>
+            <div className="modal-form">
+              <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <span className={`badge ${viewing.status === 'confirmed' ? 'badge-green' : viewing.status === 'cancelled' ? 'badge-red' : 'badge-orange'}`}>
+                  {viewing.status}
+                </span>
+                <span style={{ fontSize: '0.78rem', color: '#888' }}>
+                  Created {viewing.createdAt ? new Date(viewing.createdAt).toLocaleString() : '—'}
+                </span>
+              </div>
+
+              <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Customer</legend>
+                <p style={{ fontSize: '0.85rem' }}><strong>{viewing.customerName}</strong></p>
+                <p style={{ fontSize: '0.82rem', color: '#555' }}><Phone size={11} /> {viewing.customerPhone}</p>
+                {viewing.customerEmail && <p style={{ fontSize: '0.82rem', color: '#555' }}><Mail size={11} /> {viewing.customerEmail}</p>}
+                {viewing.customerAddress && <p style={{ fontSize: '0.82rem', color: '#555' }}><MapPin size={11} /> {viewing.customerAddress}</p>}
+              </fieldset>
+
+              <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Appointment</legend>
+                <p style={{ fontSize: '0.85rem' }}><CalIcon size={12} /> {fmtDate(viewing.preferredDate)} {viewing.preferredTime ? `· ${viewing.preferredTime}` : ''}</p>
+                <p style={{ fontSize: '0.82rem', color: '#555' }}>Service: {viewing.serviceType}</p>
+                {viewing.occasion && <p style={{ fontSize: '0.82rem', color: '#555' }}>Occasion: {viewing.occasion}</p>}
+                {viewing.storeName && <p style={{ fontSize: '0.82rem', color: '#555' }}>Store: {viewing.storeName}</p>}
+                <p style={{ fontSize: '0.82rem', color: '#555' }}>Duration: {viewing.durationMin} min</p>
+                {viewing.basePrice > 0 && (
+                  <p style={{ fontSize: '0.85rem' }}><strong>Base Price:</strong> ${Number(viewing.basePrice).toFixed(2)}</p>
+                )}
+              </fieldset>
+
+              {(viewing.notes || viewing.adminNotes) && (
+                <fieldset style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
+                  <legend style={{ padding: '0 0.4rem', fontWeight: 700, fontSize: '0.8rem', color: '#374151' }}>Notes</legend>
+                  {viewing.notes && <p style={{ fontSize: '0.82rem', color: '#555' }}>Customer: {viewing.notes}</p>}
+                  {viewing.adminNotes && <p style={{ fontSize: '0.82rem', color: '#555' }}>Admin: {viewing.adminNotes}</p>}
+                </fieldset>
+              )}
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setViewing(null)}>Close</button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => { setEditing(viewing); setViewing(null); }}
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

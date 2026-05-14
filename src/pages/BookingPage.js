@@ -13,6 +13,7 @@ export default function BookingPage() {
     customerName: '',
     customerPhone: '',
     customerEmail: '',
+    customerAddress: '',
     storeId: '',
     serviceType: 'consultation',
     occasion: '',
@@ -34,6 +35,7 @@ export default function BookingPage() {
         customerName: f.customerName || user.name || '',
         customerPhone: f.customerPhone || user.phone || '',
         customerEmail: f.customerEmail || user.email || '',
+        customerAddress: f.customerAddress || user.address || '',
         ...f,
       }));
     }
@@ -126,6 +128,16 @@ export default function BookingPage() {
             <label>Preferred Time</label>
             <input name="preferredTime" value={form.preferredTime} onChange={handle} placeholder="e.g. 3:00 PM" />
           </div>
+        </div>
+        <div className="form-group">
+          <label>Address</label>
+          <textarea
+            rows={2}
+            name="customerAddress"
+            value={form.customerAddress}
+            onChange={handle}
+            placeholder="Street, city, postal code"
+          />
         </div>
         <div className="form-group">
           <label>Notes</label>
