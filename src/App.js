@@ -16,6 +16,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import BlogListPage from './pages/BlogListPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import BookingPage from './pages/BookingPage';
+import CollectionPage from './pages/CollectionPage';
 
 function Layout() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function Layout() {
         <Route path="/blog"        element={<BlogListPage />} />
         <Route path="/blog/:id"    element={<BlogDetailPage />} />
         <Route path="/book"        element={<BookingPage />} />
+        <Route path="/collection/:slug" element={<CollectionPage />} />
         <Route path="/admin"       element={<AdminPage />} />
         <Route path="*"            element={<Navigate to="/" replace />} />
       </Routes>

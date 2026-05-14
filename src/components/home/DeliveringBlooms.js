@@ -1,18 +1,20 @@
-import React from 'react';
-import { Sparkles, ArrowRight } from 'lucide-react';
-
-const cities = [
-  { name: 'Riyadh', icon: 'https://cdn-icons-png.flaticon.com/512/3248/3248062.png' },
-  { name: 'Jeddah', icon: 'https://cdn-icons-png.flaticon.com/512/8204/8204481.png' },
-  { name: 'Mecca', icon: 'https://cdn-icons-png.flaticon.com/512/11267/11267598.png' },
-  { name: 'Medina', icon: 'https://cdn-icons-png.flaticon.com/512/6211/6211029.png' },
-  { name: 'Dammam', icon: 'https://cdn-icons-png.flaticon.com/512/3248/3248074.png' },
-  { name: 'Al-Khobar', icon: 'https://cdn-icons-png.flaticon.com/512/3248/3248057.png' },
-  { name: 'Tabuk', icon: 'https://cdn-icons-png.flaticon.com/512/3248/3248062.png' },
-  { name: 'Abha', icon: 'https://cdn-icons-png.flaticon.com/512/8204/8204481.png' },
-];
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Sparkles, ArrowRight, MapPin } from 'lucide-react';
+import { cities as citiesApi } from '../../api/endpoints';
 
 export default function DeliveringBlooms() {
+  const [cities, setCities] = useState([]);
+
+  useEffect(() => {
+    citiesApi
+      .list({ active: 'true' })
+      .then(setCities)
+      .catch(() => setCities([]));
+  }, []);
+
+  if (!cities.length) return null;
+
   return (
     <section className="cities-section">
       <div className="container">
@@ -20,12 +22,18 @@ export default function DeliveringBlooms() {
           <Sparkles size={18} strokeWidth={2} /> Delivering Blooms Across Saudi Arabia <Sparkles size={18} strokeWidth={2} />
         </h2>
         <div className="cities-grid">
-          {cities.map(c => (
-            <div key={c.name} className="city-card">
-              <img src={c.icon} alt={c.name} className="city-icon" />
+          {cities.map((c) => (
+            <Link
+              key={c.id}
+              to={`/flowers?city=${encodeURIComponent(c.id)}`}
+              className="city-card"
+            >
+              {c.icon
+                ? <img src={c.icon} alt={c.name} className="city-icon" />
+                : <MapPin size={28} className="city-icon" />}
               <span>{c.name}</span>
               <div className="city-arrow"><ArrowRight size={14} /></div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -21,8 +21,9 @@ import {
   OffersTab, TestimonialsTab, DeliveryPartnersTab, BannersTab,
   BookingsTab, ReviewsTab,
 } from '../components/admin/AdminTabs';
+import CmsTab from '../components/admin/CmsTab';
 import { exportToCsv } from '../components/admin/exportCsv';
-import { Eye, Download } from 'lucide-react';
+import { Eye, Download, LayoutGrid } from 'lucide-react';
 import './AdminPage.css';
 
 const EMPTY_PRODUCT = {
@@ -55,6 +56,7 @@ const NAV = [
   { id: 'testimonials', label: 'Testimonials',    Icon: MessageSquareQuote },
   { id: 'blogs',      label: 'Blogs',             Icon: BookOpen },
   { id: 'partners',   label: 'Delivery Partners', Icon: Bike },
+  { id: 'cms',        label: 'Homepage CMS',     Icon: LayoutGrid },
   { id: 'admins',     label: 'Admins',            Icon: Shield },
   { id: 'settings',   label: 'Settings',          Icon: SettingsIcon },
 ];
@@ -855,6 +857,7 @@ export default function AdminPage() {
           {activeTab === 'banners' && <BannersTab />}
           {activeTab === 'bookings' && <BookingsTab />}
           {activeTab === 'blogs' && <BlogsTab />}
+          {activeTab === 'cms' && <CmsTab />}
           {activeTab === 'settings' && <SettingsTab />}
 
           {/* ── Admins ── */}

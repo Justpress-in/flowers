@@ -86,7 +86,7 @@ export default function CrudTab({
             .map((x) => x.trim())
             .filter(Boolean);
         } else if (f.type === 'number') {
-          payload[f.name] = v === '' ? 0 : Number(v);
+          payload[f.name] = v === '' ? (f.nullable ? null : 0) : Number(v);
         } else if (f.type === 'date' || f.type === 'datetime') {
           payload[f.name] = v ? new Date(v).toISOString() : null;
         } else {

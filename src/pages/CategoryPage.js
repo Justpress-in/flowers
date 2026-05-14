@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import WhatsAppQR from '../components/WhatsAppQR';
 import PackagesSection from '../components/PackagesSection';
@@ -107,6 +107,7 @@ function ProductCard({ product, accentColor }) {
 
 export default function CategoryPage({ category }) {
   const { state } = useApp();
+  const location = useLocation();
   const [sortBy, setSortBy]         = useState('default');
   const [storeFilter, setStoreFilter] = useState('all');
   const [typeFilter, setTypeFilter]  = useState('all');
@@ -114,9 +115,53 @@ export default function CategoryPage({ category }) {
   const meta = META[category] || META.flowers;
   const { Icon } = meta;
 
+  // Pull CMS-driven filters off the URL (set by home sections).
+  const qs = new URLSearchParams(location.search);
+  const priceMin = qs.get('priceMin');
+  const priceMax = qs.get('priceMax');
+  const colorParam = qs.get('color');
+  const cityParam = qs.get('city');
+  const cmsFilters = [
+    priceMax && `Under $${priceMax}`,
+    priceMin && !priceMax && `Above $${priceMin}`,
+    priceMin && priceMax && `$${priceMin}–$${priceMax}`,
+    colorParam && `Colour: ${colorParam}`,
+    cityParam && `Delivers to: ${cityParam}`,
+  ].filter(Boolean);
+
   let products = state.products.filter(p => p.category === category);
   if (storeFilter !== 'all') products = products.filter(p => p.storeInventory.some(s => s.storeId === storeFilter && s.stock > 0));
   if (typeFilter !== 'all')  products = products.filter(p => p.type === typeFilter);
+
+  // CMS filters from query string.
+  if (priceMin || priceMax) {
+    const min = priceMin != null ? Number(priceMin) : -Infinity;
+    const max = priceMax != null ? Number(priceMax) : Infinity;
+    products = products.filter((p) => {
+      const prices = (p.storeInventory || []).map((s) => s.price);
+      if (!prices.length) return false;
+      const lo = Math.min(...prices);
+      return lo >= min && lo <= max;
+    });
+  }
+  if (colorParam) {
+    const target = colorParam.toLowerCase();
+    products = products.filter((p) =>
+      (p.availableColors || []).some((c) => String(c).toLowerCase().includes(target)) ||
+      (p.tags || []).some((t) => String(t).toLowerCase().includes(target))
+    );
+  }
+  if (cityParam) {
+    const target = cityParam.toLowerCase().replace(/-/g, ' ');
+    products = products.filter((p) =>
+      (p.storeInventory || []).some((si) => {
+        const store = state.stores.find((s) => s.id === si.storeId);
+        const haystack = `${store?.name || ''} ${store?.location || ''}`.toLowerCase();
+        return haystack.includes(target);
+      })
+    );
+  }
+
   if (sortBy === 'price-asc')  products = [...products].sort((a, b) => Math.min(...a.storeInventory.map(s => s.price)) - Math.min(...b.storeInventory.map(s => s.price)));
   if (sortBy === 'price-desc') products = [...products].sort((a, b) => Math.min(...b.storeInventory.map(s => s.price)) - Math.min(...a.storeInventory.map(s => s.price)));
 
@@ -220,6 +265,17 @@ export default function CategoryPage({ category }) {
             <strong>{products.length}</strong> result{products.length !== 1 ? 's' : ''}
           </span>
         </div>
+        {cmsFilters.length > 0 && (
+          <div className="container" style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', padding: '0 1rem 0.6rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.78rem', color: '#666' }}>Applied:</span>
+            {cmsFilters.map((label) => (
+              <span key={label} className="badge badge-orange" style={{ fontSize: '0.72rem' }}>
+                {label}
+              </span>
+            ))}
+            <Link to={`/${category}`} style={{ fontSize: '0.78rem', color: '#c1440e' }}>Clear</Link>
+          </div>
+        )}
       </div>
 
       {/* ── Body ── */}

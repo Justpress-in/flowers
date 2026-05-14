@@ -223,6 +223,51 @@ export const deliveryPartners = {
   remove: (id) => api.del(`/delivery-partners/${id}`),
 };
 
+// ── CMS: Price Tiers ───────────────────────────────────────────────────
+export const priceTiers = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/price-tiers${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => api.post('/price-tiers', body),
+  update: (id, body) => api.put(`/price-tiers/${id}`, body),
+  remove: (id) => api.del(`/price-tiers/${id}`),
+};
+
+// ── CMS: Cities ────────────────────────────────────────────────────────
+export const cities = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/cities${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => api.post('/cities', body),
+  update: (id, body) => api.put(`/cities/${id}`, body),
+  remove: (id) => api.del(`/cities/${id}`),
+};
+
+// ── CMS: Home Colours ──────────────────────────────────────────────────
+export const homeColours = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/home-colours${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => api.post('/home-colours', body),
+  update: (id, body) => api.put(`/home-colours/${id}`, body),
+  remove: (id) => api.del(`/home-colours/${id}`),
+};
+
+// ── CMS: Collections (showstopper + pair) ──────────────────────────────
+export const collections = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/collections${qs ? `?${qs}` : ''}`);
+  },
+  get: (id) => api.get(`/collections/${id}`),
+  create: (body) => api.post('/collections', body),
+  update: (id, body) => api.put(`/collections/${id}`, body),
+  remove: (id) => api.del(`/collections/${id}`),
+};
+
 // ── Bookings ───────────────────────────────────────────────────────────
 export const bookings = {
   create: (body) => {
