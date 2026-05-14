@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Loader2, AlertTriangle } from 'lucide-react';
+import { ImageUploadField, ImagesUploadField } from './ImageUploadField';
 
 /**
  * Generic admin tab with list + modal form + create/update/delete.
@@ -53,7 +54,7 @@ export default function CrudTab({
   function openEdit(row) {
     const populated = { ...emptyForm };
     for (const f of fields) {
-      if (f.type === 'csv') {
+      if (f.type === 'csv' || f.type === 'images-csv') {
         populated[f.name] = Array.isArray(row[f.name]) ? row[f.name].join(', ') : (row[f.name] || '');
       } else if (f.type === 'date') {
         populated[f.name] = row[f.name] ? new Date(row[f.name]).toISOString().slice(0, 10) : '';
@@ -80,7 +81,7 @@ export default function CrudTab({
       const payload = {};
       for (const f of fields) {
         const v = form[f.name];
-        if (f.type === 'csv') {
+        if (f.type === 'csv' || f.type === 'images-csv') {
           payload[f.name] = String(v || '')
             .split(',')
             .map((x) => x.trim())
@@ -193,6 +194,28 @@ export default function CrudTab({
             <form className="modal-form" onSubmit={handleSubmit}>
               {fields.map((f) => {
                 const val = form[f.name] ?? '';
+                if (f.type === 'image') {
+                  return (
+                    <ImageUploadField
+                      key={f.name}
+                      label={`${f.label}${f.required ? ' *' : ''}`}
+                      hint={f.hint}
+                      value={val}
+                      onChange={(url) => setForm((curr) => ({ ...curr, [f.name]: url }))}
+                    />
+                  );
+                }
+                if (f.type === 'images-csv') {
+                  return (
+                    <ImagesUploadField
+                      key={f.name}
+                      label={f.label}
+                      hint={f.hint}
+                      value={val}
+                      onChange={(csv) => setForm((curr) => ({ ...curr, [f.name]: csv }))}
+                    />
+                  );
+                }
                 if (f.type === 'textarea') {
                   return (
                     <div key={f.name} className="form-group">

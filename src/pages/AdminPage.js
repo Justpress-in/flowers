@@ -8,20 +8,21 @@ import {
   Plus, Pencil, Trash2, X, Flower2, Gift, PartyPopper,
   Leaf, Sparkles, Phone, Mail, LogOut, ChevronRight,
   ShoppingBag, AlertTriangle, DollarSign,
-  Menu as MenuIcon, Image as ImageIcon,
+  Menu as MenuIcon,
   Calendar, Users, Tag, Building2, Shield, Truck,
-  Loader2, Upload as UploadIcon, RefreshCw,
+  Loader2, RefreshCw,
   UserCircle2, BadgePercent, Ticket, BookOpen,
   Megaphone, MessageSquareQuote, Bike, CalendarCheck2,
   Star, Settings as SettingsIcon, Image as ImagesIcon,
 } from 'lucide-react';
-import { admins as adminsApi, upload as uploadApi } from '../api/endpoints';
+import { admins as adminsApi } from '../api/endpoints';
 import {
   UsersTab, SettingsTab, CouponsTab, PackagesTab, BlogsTab,
   OffersTab, TestimonialsTab, DeliveryPartnersTab, BannersTab,
   BookingsTab, ReviewsTab,
 } from '../components/admin/AdminTabs';
 import CmsTab from '../components/admin/CmsTab';
+import { ImageUploadField, ImagesUploadField } from '../components/admin/ImageUploadField';
 import { exportToCsv } from '../components/admin/exportCsv';
 import { Eye, Download, LayoutGrid } from 'lucide-react';
 import './AdminPage.css';
@@ -83,8 +84,6 @@ export default function AdminPage() {
   const [storeRow, setStoreRow]       = useState({
     storeId: '', stockPrice: '', basePrice: '', offeredPrice: '', discountPercent: '', stock: '',
   });
-  const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   // store form
   const [showStoreForm, setShowStoreForm]     = useState(false);
@@ -217,39 +216,6 @@ export default function AdminPage() {
   }
   function removeStoreRow(id) {
     setForm((f) => ({ ...f, storeInventory: f.storeInventory.filter((s) => s.storeId !== id) }));
-  }
-
-  async function handleCoverUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploadingCover(true);
-    try {
-      const { url } = await uploadApi.single(file);
-      setForm((f) => ({ ...f, image: url }));
-    } catch (err) {
-      setBanner({ type: 'error', text: err.message || 'Upload failed' });
-    } finally {
-      setUploadingCover(false);
-      e.target.value = '';
-    }
-  }
-  async function handleGalleryUpload(e) {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setUploadingGallery(true);
-    try {
-      const { files: uploaded } = await uploadApi.multiple(files);
-      const urls = uploaded.map((u) => u.url);
-      setForm((f) => ({
-        ...f,
-        images: [csvToArr(f.images), urls].flat().join(', '),
-      }));
-    } catch (err) {
-      setBanner({ type: 'error', text: err.message || 'Upload failed' });
-    } finally {
-      setUploadingGallery(false);
-      e.target.value = '';
-    }
   }
 
   async function handleSubmit(e) {
@@ -1161,38 +1127,18 @@ export default function AdminPage() {
               <div className="form-group"><label>Description *</label><textarea name="description" rows={3} value={form.description} onChange={handleChange} placeholder="Describe the product…" /></div>
 
               {/* Cover photo */}
-              <div className="form-group">
-                <label>Cover Photo *</label>
-                <div className="prod-img-field">
-                  <div className="prod-img-preview">
-                    {form.image
-                      ? <img src={form.image} alt="cover preview" onError={(e) => { e.target.style.display = 'none'; }} />
-                      : <div className="prod-img-placeholder"><ImageIcon size={28} /></div>}
-                  </div>
-                  <input name="image" value={form.image} onChange={handleChange} placeholder="https://… or upload below" />
-                </div>
-                <label className="btn btn-ghost" style={{ marginTop: '0.5rem', display: 'inline-flex', cursor: 'pointer' }}>
-                  <UploadIcon size={13} /> {uploadingCover ? 'Uploading…' : 'Upload cover image'}
-                  <input type="file" accept="image/*" hidden onChange={handleCoverUpload} disabled={uploadingCover} />
-                </label>
-              </div>
+              <ImageUploadField
+                label="Cover Photo *"
+                value={form.image || ''}
+                onChange={(url) => setForm((f) => ({ ...f, image: url }))}
+              />
 
               {/* Gallery */}
-              <div className="form-group">
-                <label>Gallery Images (comma-separated URLs)</label>
-                <textarea name="images" rows={2} value={form.images} onChange={handleChange} placeholder="https://…, https://…" />
-                <label className="btn btn-ghost" style={{ marginTop: '0.5rem', display: 'inline-flex', cursor: 'pointer' }}>
-                  <UploadIcon size={13} /> {uploadingGallery ? 'Uploading…' : 'Upload gallery images'}
-                  <input type="file" accept="image/*" multiple hidden onChange={handleGalleryUpload} disabled={uploadingGallery} />
-                </label>
-                {form.images && (
-                  <div className="prod-gallery-preview">
-                    {csvToArr(form.images).map((url, i) => (
-                      <img key={i} src={url} alt={`gallery ${i + 1}`} onError={(e) => { e.target.style.display = 'none'; }} />
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ImagesUploadField
+                label="Gallery Images"
+                value={form.images || ''}
+                onChange={(csv) => setForm((f) => ({ ...f, images: csv }))}
+              />
 
               <div className="form-row">
                 <div className="form-group"><label>Tags</label><input name="tags" value={form.tags} onChange={handleChange} placeholder="bestseller, romantic" /></div>

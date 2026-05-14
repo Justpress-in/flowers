@@ -18,6 +18,7 @@ import {
   Eye, Download, MapPin, Calendar as CalIcon,
 } from 'lucide-react';
 import { exportToCsv } from './exportCsv';
+import { ImageUploadField } from './ImageUploadField';
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString();
@@ -157,8 +158,8 @@ export const PackagesTab = () => (
       { name: 'eventType', label: 'Event Type', type: 'select', required: true,
         options: ['wedding', 'birthday', 'corporate', 'anniversary', 'baby-shower', 'other'] },
       { name: 'description', label: 'Description', type: 'textarea', rows: 3 },
-      { name: 'image', label: 'Cover Image URL' },
-      { name: 'gallery', label: 'Gallery Image URLs (comma-separated)', type: 'csv' },
+      { name: 'image', label: 'Cover Image', type: 'image' },
+      { name: 'gallery', label: 'Gallery Images', type: 'images-csv' },
       { name: 'inclusions', label: 'Inclusions (comma-separated)', type: 'csv', placeholder: 'Bridal bouquet, Mandap florals, Centerpieces' },
       { name: 'price', label: 'Price ($)', type: 'number', required: true, min: 0 },
       { name: 'duration', label: 'Duration', placeholder: 'e.g. Full Day' },
@@ -192,7 +193,7 @@ export const BlogsTab = () => (
       { name: 'title', label: 'Title', required: true },
       { name: 'excerpt', label: 'Excerpt', type: 'textarea', rows: 2, placeholder: 'Short summary shown in listings' },
       { name: 'body', label: 'Body (Markdown / HTML)', type: 'textarea', rows: 12, required: true },
-      { name: 'coverImage', label: 'Cover Image URL' },
+      { name: 'coverImage', label: 'Cover Image', type: 'image' },
       { name: 'author', label: 'Author' },
       { name: 'category', label: 'Category', placeholder: 'Flowers, Events, Tips, …' },
       { name: 'tags', label: 'Tags (comma-separated)', type: 'csv' },
@@ -222,7 +223,7 @@ export const OffersTab = () => (
     fields={[
       { name: 'title', label: 'Title', required: true },
       { name: 'subtitle', label: 'Subtitle' },
-      { name: 'image', label: 'Image URL' },
+      { name: 'image', label: 'Image', type: 'image' },
       { name: 'badge', label: 'Badge Text', placeholder: 'e.g. 30% OFF' },
       { name: 'link', label: 'CTA Link', placeholder: '/flowers' },
       { name: 'couponCode', label: 'Coupon Code (optional)' },
@@ -254,7 +255,7 @@ export const TestimonialsTab = () => (
     fields={[
       { name: 'customerName', label: 'Customer Name', required: true },
       { name: 'location', label: 'Location' },
-      { name: 'avatar', label: 'Avatar URL' },
+      { name: 'avatar', label: 'Avatar', type: 'image' },
       { name: 'rating', label: 'Rating (1-5)', type: 'number', min: 1, max: 5 },
       { name: 'quote', label: 'Quote', type: 'textarea', required: true, rows: 3 },
       { name: 'occasion', label: 'Occasion', placeholder: 'e.g. Anniversary, Wedding' },
@@ -284,7 +285,7 @@ export const DeliveryPartnersTab = () => (
     ]}
     fields={[
       { name: 'name', label: 'Partner Name', required: true },
-      { name: 'logo', label: 'Logo URL' },
+      { name: 'logo', label: 'Logo', type: 'image' },
       { name: 'contactPhone', label: 'Contact Phone' },
       { name: 'contactEmail', label: 'Contact Email' },
       { name: 'serviceAreas', label: 'Service Areas (comma-separated)', type: 'csv' },
@@ -318,7 +319,7 @@ export const BannersTab = () => (
       { name: 'cta', label: 'CTA Label', placeholder: 'Shop Flowers' },
       { name: 'ctaLink', label: 'CTA Link', placeholder: '/flowers' },
       { name: 'bg', label: 'Background', placeholder: 'linear-gradient(...) or color' },
-      { name: 'image', label: 'Image URL' },
+      { name: 'image', label: 'Image', type: 'image' },
       { name: 'order', label: 'Display Order', type: 'number' },
       { name: 'active', label: 'Active', type: 'checkbox' },
     ]}
@@ -682,7 +683,11 @@ export function SettingsTab() {
           </div>
           <div className="form-group"><label>Description</label><textarea rows={2} value={form.description || ''} onChange={(e) => set('description', e.target.value)} /></div>
           <div className="form-row">
-            <div className="form-group"><label>Logo URL</label><input value={form.logoUrl || ''} onChange={(e) => set('logoUrl', e.target.value)} /></div>
+            <ImageUploadField
+              label="Logo"
+              value={form.logoUrl || ''}
+              onChange={(url) => set('logoUrl', url)}
+            />
             <div className="form-group"><label>Currency Symbol</label><input value={form.currencySymbol || '$'} onChange={(e) => set('currencySymbol', e.target.value)} /></div>
           </div>
         </fieldset>

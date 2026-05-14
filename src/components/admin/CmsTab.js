@@ -3,6 +3,7 @@ import {
   Loader2, AlertTriangle, Plus, Pencil, Trash2, X, Sparkles, Tag, MapPin, Palette, LayoutGrid, Link2, Check,
 } from 'lucide-react';
 import CrudTab from './CrudTab';
+import { ImageUploadField } from './ImageUploadField';
 import {
   priceTiers as priceTiersApi,
   cities as citiesApi,
@@ -100,7 +101,7 @@ function CitiesTab() {
       ]}
       fields={[
         { name: 'name', label: 'City Name', required: true, placeholder: 'Riyadh' },
-        { name: 'icon', label: 'Icon URL', placeholder: 'https://…' },
+        { name: 'icon', label: 'Icon', type: 'image' },
         { name: 'order', label: 'Display Order', type: 'number' },
         { name: 'active', label: 'Active', type: 'checkbox' },
       ]}
@@ -127,7 +128,7 @@ function ColoursTab() {
       ]}
       fields={[
         { name: 'name', label: 'Colour Name', required: true, placeholder: 'Red', hint: 'Used to filter products by availableColors / tags' },
-        { name: 'image', label: 'Image URL (preferred)' },
+        { name: 'image', label: 'Image (preferred)', type: 'image' },
         { name: 'swatch', label: 'Or CSS Colour', placeholder: '#e11d48 or red' },
         { name: 'order', label: 'Display Order', type: 'number' },
         { name: 'active', label: 'Active', type: 'checkbox' },
@@ -288,14 +289,11 @@ function CollectionTab({ kind, title }) {
                   />
                 </div>
               </div>
-              <div className="form-group">
-                <label>Cover Image URL</label>
-                <input
-                  value={editing.image || ''}
-                  onChange={(e) => setEditing({ ...editing, image: e.target.value })}
-                  placeholder="https://…"
-                />
-              </div>
+              <ImageUploadField
+                label="Cover Image"
+                value={editing.image || ''}
+                onChange={(url) => setEditing({ ...editing, image: url })}
+              />
               <div className="form-group">
                 <label>Description</label>
                 <textarea
