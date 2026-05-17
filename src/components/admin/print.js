@@ -175,6 +175,82 @@ export function printEvent(ev) {
   });
 }
 
+export function printProduct(p, stores = []) {
+  if (!p) return;
+  const storeMap = new Map(stores.map((s) => [s.id, s]));
+  const inventory = p.storeInventory || [];
+  const totalStock = inventory.reduce((sum, s) => sum + (s.stock || 0), 0);
+  const prices = inventory.map((s) => Number(s.price || 0)).filter((n) => n > 0);
+  const priceRange = prices.length
+    ? prices.length === 1
+      ? money(prices[0])
+      : `${money(Math.min(...prices))} – ${money(Math.max(...prices))}`
+    : '—';
+
+  const invRows = inventory.length
+    ? inventory.map((si) => {
+        const store = storeMap.get(si.storeId);
+        const base = Number(si.basePrice || si.price || 0);
+        const offered = Number(si.offeredPrice || si.price || 0);
+        const pct = Number(si.discountPercent || 0);
+        const priceCell = pct > 0
+          ? `<span style="text-decoration: line-through; color: #999;">${money(base)}</span> <strong style="color: #c1440e;">${money(offered)}</strong> <span style="font-size: 11px; color: #c1440e;">(${pct}% off)</span>`
+          : `<strong>${money(base)}</strong>`;
+        return `<tr>
+          <td>${escapeHtml(store?.name || si.storeId)}</td>
+          <td>${money(si.stockPrice || 0)}</td>
+          <td>${priceCell}</td>
+          <td>${escapeHtml(si.stock || 0)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4" style="text-align: center; color: #888;">No store inventory</td></tr>';
+
+  const bodyHtml = `
+  <div class="product" style="margin-top: 8px;">
+    ${p.image ? `<img src="${escapeHtml(p.image)}" alt="" style="width: 120px; height: 120px;" />` : ''}
+    <div>
+      <div style="font-weight: 700; font-size: 16px;">${escapeHtml(p.name)}</div>
+      <div class="meta" style="margin-top: 4px;">Category: ${escapeHtml(p.category)} · Type: ${escapeHtml(p.type)}</div>
+      <div class="meta">Price range: <strong>${priceRange}</strong> · Total stock: <strong>${totalStock}</strong></div>
+      ${p.tags && p.tags.length ? `<div class="meta" style="margin-top: 4px;">Tags: ${escapeHtml(p.tags.join(', '))}</div>` : ''}
+    </div>
+  </div>
+
+  ${p.description ? `
+  <h2>Description</h2>
+  <p style="font-size: 13px; line-height: 1.5;">${escapeHtml(p.description)}</p>
+  ` : ''}
+
+  <h2>Attributes</h2>
+  <table>
+    <tr><td class="label">Product ID</td><td>${escapeHtml(p.id)}</td></tr>
+    ${p.availableColors && p.availableColors.length ? `<tr><td class="label">Colours</td><td>${escapeHtml(p.availableColors.join(', '))}</td></tr>` : ''}
+    ${p.sizes && p.sizes.length ? `<tr><td class="label">Sizes</td><td>${escapeHtml(p.sizes.join(', '))}</td></tr>` : ''}
+    <tr><td class="label">Bespoke requests</td><td>${p.allowCustomDescription ? 'Allowed' : 'Disabled'}</td></tr>
+  </table>
+
+  <h2>Store Inventory (${inventory.length})</h2>
+  <table>
+    <thead>
+      <tr style="border-bottom: 1px solid #e5e7eb; text-align: left;">
+        <th style="padding: 6px 0; font-size: 11px; color: #6b7280; text-transform: uppercase;">Store</th>
+        <th style="padding: 6px 0; font-size: 11px; color: #6b7280; text-transform: uppercase;">Cost</th>
+        <th style="padding: 6px 0; font-size: 11px; color: #6b7280; text-transform: uppercase;">Selling price</th>
+        <th style="padding: 6px 0; font-size: 11px; color: #6b7280; text-transform: uppercase;">Stock</th>
+      </tr>
+    </thead>
+    <tbody>${invRows}</tbody>
+  </table>`;
+
+  openPrintWindow({
+    title: `Product ${p.name}`,
+    kicker: 'Product details',
+    headingId: p.name,
+    headingDate: priceRange,
+    bodyHtml,
+  });
+}
+
 export function printBooking(b) {
   if (!b) return;
   const dateStr = b.preferredDate

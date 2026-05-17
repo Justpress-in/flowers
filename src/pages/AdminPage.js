@@ -24,7 +24,7 @@ import {
 import CmsTab from '../components/admin/CmsTab';
 import { ImageUploadField, ImagesUploadField } from '../components/admin/ImageUploadField';
 import { exportToCsv } from '../components/admin/exportCsv';
-import { printOrder, printEvent } from '../components/admin/print';
+import { printOrder, printEvent, printProduct } from '../components/admin/print';
 import { Eye, Download, LayoutGrid, Printer } from 'lucide-react';
 import './AdminPage.css';
 
@@ -631,8 +631,9 @@ export default function AdminPage() {
                           <span>{prices.length ? `$${Math.min(...prices)} – $${Math.max(...prices)}` : '—'}</span>
                           <span className={totalStock < 5 ? 'adm-low' : ''}>{totalStock}</span>
                           <div className="adm-row-actions">
-                            <button className="btn btn-ghost" onClick={() => openEditForm(p)}><Pencil size={13} /></button>
-                            <button className="btn btn-ghost adm-del-btn" onClick={() => deleteProduct(p.id)}><Trash2 size={13} /></button>
+                            <button className="btn btn-ghost" title="Edit" onClick={() => openEditForm(p)}><Pencil size={13} /></button>
+                            <button className="btn btn-ghost" title="Print details" onClick={() => printProduct(p, state.stores)}><Printer size={13} /></button>
+                            <button className="btn btn-ghost adm-del-btn" title="Delete" onClick={() => deleteProduct(p.id)}><Trash2 size={13} /></button>
                           </div>
                         </div>
                       );
