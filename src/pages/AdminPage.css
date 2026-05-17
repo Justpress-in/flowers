@@ -502,6 +502,7 @@
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   animation: modal-in 0.2s ease;
 }
+.modal.modal-wide { max-width: 860px; }
 @keyframes modal-in { from { opacity: 0; transform: translateY(-16px) scale(0.98); } to { opacity: 1; transform: none; } }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid #e5e7eb; }
 .modal-header h2 { font-size: 1.2rem; }
@@ -552,6 +553,31 @@
 }
 .store-inv-add select:focus, .store-inv-add input:focus { border-color: var(--primary); }
 .text-danger { color: #dc2626 !important; }
+
+/* Product modal inventory add-row: wraps gracefully when the modal is narrow. */
+.prod-inv-add {
+  display: flex; flex-wrap: wrap; gap: 0.45rem;
+  align-items: center; margin-top: 0.5rem;
+}
+.prod-inv-add select,
+.prod-inv-add input {
+  flex: 1 1 110px; min-width: 0;
+  padding: 0.5rem 0.7rem; border: 1.5px solid #e5e7eb;
+  border-radius: 8px; font-size: 0.85rem; outline: none;
+}
+.prod-inv-add .prod-inv-store { flex: 2 1 180px; }
+.prod-inv-add select:focus, .prod-inv-add input:focus { border-color: var(--primary); }
+.prod-inv-add-btn { flex: 0 0 auto; }
+
+.prod-inv-row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.6rem 0.9rem;
+  padding: 0.55rem 0.75rem; background: #f8f9fb;
+  border-radius: 6px; margin-bottom: 0.35rem; font-size: 0.85rem;
+}
+.prod-inv-row-store { flex: 1 1 140px; min-width: 0; }
+.prod-inv-row-cell  { flex: 0 1 auto; font-size: 0.78rem; color: #555; }
+.prod-inv-row-remove { margin-left: auto; }
 
 /* ── Product image fields ────────────────────────────── */
 .prod-img-field {

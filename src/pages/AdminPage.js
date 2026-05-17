@@ -1229,7 +1229,7 @@ export default function AdminPage() {
       {/* ── Product Modal ── */}
       {showForm && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowForm(false)}>
-          <div className="modal">
+          <div className="modal modal-wide">
             <div className="modal-header">
               <h2>{editingId ? 'Edit Product' : 'Add Product'}</h2>
               <button className="modal-close" onClick={() => setShowForm(false)}><X size={18} /></button>
@@ -1301,12 +1301,12 @@ export default function AdminPage() {
                   const offered = Number(si.offeredPrice || si.price || 0);
                   const pct = Number(si.discountPercent || 0);
                   return (
-                    <div key={si.storeId} className="store-inv-row">
-                      <span><strong>{store?.name || si.storeId}</strong></span>
-                      <span style={{ fontSize: '0.78rem', color: '#666' }}>
+                    <div key={si.storeId} className="prod-inv-row">
+                      <span className="prod-inv-row-store"><strong>{store?.name || si.storeId}</strong></span>
+                      <span className="prod-inv-row-cell">
                         Cost: ${Number(si.stockPrice || 0).toFixed(2)}
                       </span>
-                      <span style={{ fontSize: '0.78rem' }}>
+                      <span className="prod-inv-row-cell">
                         {pct > 0 ? (
                           <>
                             <span style={{ textDecoration: 'line-through', color: '#999' }}>${base.toFixed(2)}</span>
@@ -1317,13 +1317,17 @@ export default function AdminPage() {
                           <strong>${base.toFixed(2)}</strong>
                         )}
                       </span>
-                      <span>{si.stock} units</span>
-                      <button type="button" className="btn btn-ghost text-danger" onClick={() => removeStoreRow(si.storeId)}>Remove</button>
+                      <span className="prod-inv-row-cell">{si.stock} units</span>
+                      <button type="button" className="btn btn-ghost text-danger prod-inv-row-remove" onClick={() => removeStoreRow(si.storeId)}>Remove</button>
                     </div>
                   );
                 })}
-                <div className="store-inv-add" style={{ display: 'grid', gridTemplateColumns: 'minmax(140px, 1.4fr) repeat(5, 1fr) auto', gap: '0.4rem', alignItems: 'center' }}>
-                  <select value={storeRow.storeId} onChange={(e) => setStoreRow((r) => ({ ...r, storeId: e.target.value }))}>
+                <div className="prod-inv-add">
+                  <select
+                    className="prod-inv-store"
+                    value={storeRow.storeId}
+                    onChange={(e) => setStoreRow((r) => ({ ...r, storeId: e.target.value }))}
+                  >
                     <option value="">Select store…</option>
                     {state.stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
@@ -1337,7 +1341,7 @@ export default function AdminPage() {
                     onChange={(e) => setStoreRow((r) => ({ ...r, discountPercent: e.target.value }))} min="0" max="100" />
                   <input type="number" placeholder="Stock" title="Quantity in stock" value={storeRow.stock}
                     onChange={(e) => setStoreRow((r) => ({ ...r, stock: e.target.value }))} min="0" />
-                  <button type="button" className="btn btn-secondary" onClick={addStoreRow}>Add</button>
+                  <button type="button" className="btn btn-secondary prod-inv-add-btn" onClick={addStoreRow}>Add</button>
                 </div>
               </div>
               <div className="modal-footer">
