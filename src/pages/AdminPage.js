@@ -24,6 +24,7 @@ import {
 import CmsTab from '../components/admin/CmsTab';
 import { ImageUploadField, ImagesUploadField } from '../components/admin/ImageUploadField';
 import { exportToCsv } from '../components/admin/exportCsv';
+import { printOrder, printEvent } from '../components/admin/print';
 import { Eye, Download, LayoutGrid, Printer } from 'lucide-react';
 import './AdminPage.css';
 
@@ -66,130 +67,6 @@ const ORDER_STATUSES = ['Confirmed', 'Processing', 'Shipped', 'Delivered', 'Canc
 
 function csvToArr(s) {
   return String(s || '').split(',').map((x) => x.trim()).filter(Boolean);
-}
-
-function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
-}
-
-function printOrder(order) {
-  if (!order) return;
-  const money = (n) => `$${Number(n || 0).toFixed(2)}`;
-  const dateStr = order.date ? new Date(order.date).toLocaleString() : '—';
-  const rows = [
-    ['Order ID', order.id],
-    ['Date', dateStr],
-    ['Type', order.type],
-    ['Status', order.status],
-  ];
-  const gift = order.giftDetails;
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>Order ${escapeHtml(order.id)}</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1f2937; max-width: 720px; margin: 32px auto; padding: 0 24px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin: 24px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
-  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #c1440e; padding-bottom: 12px; }
-  .brand { color: #c1440e; font-weight: 700; font-size: 18px; }
-  .meta { font-size: 12px; color: #6b7280; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  td { padding: 6px 0; vertical-align: top; }
-  td.label { width: 35%; color: #6b7280; }
-  .product { display: flex; gap: 12px; align-items: flex-start; }
-  .product img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb; }
-  .total-row td { font-weight: 700; font-size: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; }
-  .total-row td:last-child { color: #c1440e; }
-  .footer { margin-top: 32px; font-size: 11px; color: #9ca3af; text-align: center; }
-  @media print {
-    body { margin: 0; }
-    .no-print { display: none !important; }
-  }
-  .print-btn { background: #c1440e; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-</style>
-</head>
-<body>
-  <div class="no-print" style="text-align: right; margin-bottom: 16px;">
-    <button class="print-btn" onclick="window.print()">Print this page</button>
-  </div>
-  <div class="header">
-    <div>
-      <div class="brand">BloomNest</div>
-      <div class="meta">Order receipt</div>
-    </div>
-    <div style="text-align: right;">
-      <h1>${escapeHtml(order.id)}</h1>
-      <div class="meta">${escapeHtml(dateStr)}</div>
-    </div>
-  </div>
-
-  <h2>Order</h2>
-  <table>
-    ${rows.map(([k, v]) => `<tr><td class="label">${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`).join('')}
-    ${order.couponCode ? `<tr><td class="label">Coupon</td><td>${escapeHtml(order.couponCode)}</td></tr>` : ''}
-    ${order.trackingUrl ? `<tr><td class="label">Tracking</td><td>${escapeHtml(order.trackingUrl)}</td></tr>` : ''}
-  </table>
-
-  <h2>Product</h2>
-  <div class="product">
-    ${order.productImage ? `<img src="${escapeHtml(order.productImage)}" alt="" />` : ''}
-    <div>
-      <div style="font-weight: 600; font-size: 14px;">${escapeHtml(order.productName)}</div>
-      <div class="meta" style="margin-top: 4px;">Store: ${escapeHtml(order.storeName)}</div>
-      <div class="meta">Qty: ${escapeHtml(order.quantity)}${order.color ? ` · ${escapeHtml(order.color)}` : ''}${order.size ? ` · ${escapeHtml(order.size)}` : ''}</div>
-      ${order.customDescription ? `<div class="meta" style="margin-top: 6px;">Custom: ${escapeHtml(order.customDescription)}</div>` : ''}
-    </div>
-  </div>
-
-  <h2>Customer</h2>
-  <table>
-    <tr><td class="label">Name</td><td>${escapeHtml(order.customerName || '—')}</td></tr>
-    <tr><td class="label">Phone</td><td>${escapeHtml(order.customerPhone || '—')}</td></tr>
-    <tr><td class="label">Email</td><td>${escapeHtml(order.customerEmail || '—')}</td></tr>
-    ${order.customerAddress ? `<tr><td class="label">Address</td><td>${escapeHtml(order.customerAddress)}</td></tr>` : ''}
-  </table>
-
-  ${gift ? `
-  <h2>Gift Recipient</h2>
-  <table>
-    <tr><td class="label">Name</td><td>${escapeHtml(gift.receiverName)}</td></tr>
-    <tr><td class="label">Phone</td><td>${escapeHtml(gift.receiverPhone)}</td></tr>
-    <tr><td class="label">Address</td><td>${escapeHtml(gift.receiverAddress)}</td></tr>
-    ${gift.giftMessage ? `<tr><td class="label">Message</td><td><em>"${escapeHtml(gift.giftMessage)}"</em></td></tr>` : ''}
-  </table>
-  ` : ''}
-
-  <h2>Pricing</h2>
-  <table>
-    <tr><td class="label">Unit price</td><td>${money(order.unitPrice)}</td></tr>
-    ${order.basePrice > 0 ? `<tr><td class="label">Base / MRP</td><td>${money(order.basePrice)}</td></tr>` : ''}
-    ${order.discount > 0 ? `<tr><td class="label">Discount</td><td>-${money(order.discount)}</td></tr>` : ''}
-    <tr class="total-row"><td>Total</td><td>${money(order.price)}</td></tr>
-  </table>
-
-  <div class="footer">
-    Generated ${escapeHtml(new Date().toLocaleString())} · BloomNest
-  </div>
-  <script>
-    window.addEventListener('load', function () {
-      setTimeout(function () { window.print(); }, 300);
-    });
-  </script>
-</body>
-</html>`;
-  const w = window.open('', '_blank', 'width=820,height=900');
-  if (!w) {
-    alert('Pop-up blocked. Please allow pop-ups to print orders.');
-    return;
-  }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
 }
 
 export default function AdminPage() {
@@ -790,6 +667,7 @@ export default function AdminPage() {
                       </div>
                       <div className="adm-event-actions">
                         <button className="btn btn-ghost" onClick={() => openEditEvent(ev)}><Pencil size={13} /> Edit</button>
+                        <button className="btn btn-ghost" onClick={() => printEvent(ev)}><Printer size={13} /> Print</button>
                         <button className="btn btn-ghost adm-del-btn" onClick={() => deleteEvent(ev.id)}><Trash2 size={13} /> Delete</button>
                       </div>
                     </div>

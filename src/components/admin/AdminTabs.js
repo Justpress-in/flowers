@@ -15,10 +15,11 @@ import {
 } from '../../api/endpoints';
 import {
   Mail, Phone, Loader2, AlertTriangle, CheckCircle2, Save, Star, X,
-  Eye, Download, MapPin, Calendar as CalIcon,
+  Eye, Download, MapPin, Calendar as CalIcon, Printer,
 } from 'lucide-react';
 import { exportToCsv } from './exportCsv';
 import { ImageUploadField } from './ImageUploadField';
+import { printBooking } from './print';
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString();
@@ -418,6 +419,7 @@ export function BookingsTab() {
               <span className={`badge ${b.status === 'confirmed' ? 'badge-green' : b.status === 'cancelled' ? 'badge-red' : 'badge-orange'}`}>{b.status}</span>
               <div className="adm-row-actions" style={{ display: 'flex', gap: '0.3rem' }}>
                 <button className="btn btn-ghost" onClick={() => setViewing(b)}><Eye size={13} /> View</button>
+                <button className="btn btn-ghost" onClick={() => printBooking(b)}><Printer size={13} /> Print</button>
                 <button className="btn btn-ghost" onClick={() => setEditing(b)}>Edit</button>
                 <button className="btn btn-ghost adm-del-btn" onClick={() => deleteBooking(b.id)}>Delete</button>
               </div>
@@ -533,6 +535,13 @@ export function BookingsTab() {
 
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setViewing(null)}>Close</button>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => printBooking(viewing)}
+                >
+                  <Printer size={13} /> Print
+                </button>
                 <button
                   type="button"
                   className="btn btn-primary"
