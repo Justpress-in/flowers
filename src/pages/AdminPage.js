@@ -182,6 +182,32 @@ export default function AdminPage() {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   }
+  // Live-recompute the price relationship so admins never have to do the math.
+  //   - editing Offered or Base → recompute Disc %
+  //   - editing Disc % → recompute Offered from Base
+  // The field the admin just typed is treated as the source of truth.
+  function setRowField(field, value) {
+    setStoreRow((r) => {
+      const next = { ...r, [field]: value };
+      const base = parseFloat(next.basePrice);
+      const offered = parseFloat(next.offeredPrice);
+      const pct = parseFloat(next.discountPercent);
+      const fmt = (n) =>
+        Number.isFinite(n) ? String(Math.round(n * 100) / 100) : '';
+      if (field === 'basePrice' || field === 'offeredPrice') {
+        if (Number.isFinite(base) && base > 0 && Number.isFinite(offered)) {
+          const newPct = ((base - offered) / base) * 100;
+          next.discountPercent = newPct > 0 ? fmt(newPct) : '0';
+        }
+      } else if (field === 'discountPercent') {
+        if (Number.isFinite(base) && base > 0 && Number.isFinite(pct)) {
+          next.offeredPrice = fmt(base - (base * pct) / 100);
+        }
+      }
+      return next;
+    });
+  }
+
   function addStoreRow() {
     if (!storeRow.storeId || !storeRow.basePrice || !storeRow.stock) return;
     const basePrice = +storeRow.basePrice;
@@ -1171,7 +1197,7 @@ export default function AdminPage() {
               <div className="store-inventory-section">
                 <h4>Store Inventory *</h4>
                 <p style={{ fontSize: '0.78rem', color: '#777', marginBottom: '0.5rem' }}>
-                  Stock price = cost · Base price = MRP · Offered = selling price (auto from % if blank)
+                  Stock = cost · Base = MRP · Offered = selling price. Enter any two of Base / Offered / Disc % — the third fills in automatically.
                 </p>
                 {form.storeInventory.map((si) => {
                   const store = state.stores.find((s) => s.id === si.storeId);
@@ -1212,11 +1238,11 @@ export default function AdminPage() {
                   <input type="number" placeholder="Stock $" title="Stock / cost price" value={storeRow.stockPrice}
                     onChange={(e) => setStoreRow((r) => ({ ...r, stockPrice: e.target.value }))} min="0" />
                   <input type="number" placeholder="Base $" title="Base / MRP price" value={storeRow.basePrice}
-                    onChange={(e) => setStoreRow((r) => ({ ...r, basePrice: e.target.value }))} min="0" />
-                  <input type="number" placeholder="Offered $" title="Offered selling price (overrides %)" value={storeRow.offeredPrice}
-                    onChange={(e) => setStoreRow((r) => ({ ...r, offeredPrice: e.target.value }))} min="0" />
-                  <input type="number" placeholder="Disc %" title="Discount % (used if Offered is blank)" value={storeRow.discountPercent}
-                    onChange={(e) => setStoreRow((r) => ({ ...r, discountPercent: e.target.value }))} min="0" max="100" />
+                    onChange={(e) => setRowField('basePrice', e.target.value)} min="0" />
+                  <input type="number" placeholder="Offered $" title="Offered selling price — Disc % auto-fills" value={storeRow.offeredPrice}
+                    onChange={(e) => setRowField('offeredPrice', e.target.value)} min="0" />
+                  <input type="number" placeholder="Disc %" title="Discount % — Offered $ auto-fills from Base" value={storeRow.discountPercent}
+                    onChange={(e) => setRowField('discountPercent', e.target.value)} min="0" max="100" />
                   <input type="number" placeholder="Stock" title="Quantity in stock" value={storeRow.stock}
                     onChange={(e) => setStoreRow((r) => ({ ...r, stock: e.target.value }))} min="0" />
                   <button type="button" className="btn btn-secondary prod-inv-add-btn" onClick={addStoreRow}>Add</button>
