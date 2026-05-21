@@ -268,6 +268,31 @@ export const collections = {
   remove: (id) => api.del(`/collections/${id}`),
 };
 
+// ── Master (centralised lookup data: categories, statuses, types, …) ────
+export const master = {
+  // Flat list, optionally scoped to one group (includes inactive — for admin).
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/master${qs ? `?${qs}` : ''}`);
+  },
+  // { [group]: [items] } — active-only by default, used to feed dropdowns/tiles.
+  grouped: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return api.get(`/master/grouped${qs ? `?${qs}` : ''}`);
+  },
+  groups: () => api.get('/master/groups'),
+  create: (body) => api.post('/master', body),
+  update: (id, body) => api.put(`/master/${id}`, body),
+  remove: (id) => api.del(`/master/${id}`),
+  // Returns a CrudTab-compatible api bound to a single group.
+  forGroup: (group) => ({
+    list: () => api.get(`/master?group=${encodeURIComponent(group)}`),
+    create: (body) => api.post('/master', { ...body, group }),
+    update: (id, body) => api.put(`/master/${id}`, body),
+    remove: (id) => api.del(`/master/${id}`),
+  }),
+};
+
 // ── Bookings ───────────────────────────────────────────────────────────
 export const bookings = {
   create: (body) => {
