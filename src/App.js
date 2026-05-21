@@ -17,6 +17,10 @@ import BlogListPage from './pages/BlogListPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import BookingPage from './pages/BookingPage';
 import CollectionPage from './pages/CollectionPage';
+import PackagesPage from './pages/PackagesPage';
+import SpecialsPage from './pages/SpecialsPage';
+import FestivalsPage from './pages/FestivalsPage';
+import PartiesPage from './pages/PartiesPage';
 
 function Layout() {
   const location = useLocation();
@@ -29,7 +33,7 @@ function Layout() {
         <Route path="/"            element={<HomePage />} />
         <Route path="/flowers"     element={<CategoryPage category="flowers" />} />
         <Route path="/gifts"       element={<CategoryPage category="gifts" />} />
-        <Route path="/parties"     element={<CategoryPage category="parties" />} />
+        <Route path="/parties"     element={<PartiesPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
         <Route path="/cart"        element={<CartPage />} />
         <Route path="/checkout"    element={<CheckoutPage />} />
@@ -37,6 +41,9 @@ function Layout() {
         <Route path="/blog"        element={<BlogListPage />} />
         <Route path="/blog/:id"    element={<BlogDetailPage />} />
         <Route path="/book"        element={<BookingPage />} />
+        <Route path="/packages"    element={<PackagesPage />} />
+        <Route path="/specials"    element={<SpecialsPage />} />
+        <Route path="/festivals"   element={<FestivalsPage />} />
         <Route path="/collection/:slug" element={<CollectionPage />} />
         <Route path="/admin"       element={<AdminPage />} />
         <Route path="*"            element={<Navigate to="/" replace />} />
