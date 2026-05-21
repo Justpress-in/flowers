@@ -13,15 +13,17 @@ import {
   Loader2, RefreshCw,
   UserCircle2, BadgePercent, Ticket, BookOpen,
   Megaphone, MessageSquareQuote, Bike, CalendarCheck2,
-  Star, Settings as SettingsIcon, Image as ImagesIcon,
+  Star, Settings as SettingsIcon, Image as ImagesIcon, Database,
 } from 'lucide-react';
 import { admins as adminsApi } from '../api/endpoints';
+import { useMaster } from '../api/useMaster';
 import {
   UsersTab, SettingsTab, CouponsTab, PackagesTab, BlogsTab,
   OffersTab, TestimonialsTab, DeliveryPartnersTab, BannersTab,
   BookingsTab, ReviewsTab,
 } from '../components/admin/AdminTabs';
 import CmsTab from '../components/admin/CmsTab';
+import MasterTab from '../components/admin/MasterTab';
 import { ImageUploadField, ImagesUploadField } from '../components/admin/ImageUploadField';
 import { exportToCsv } from '../components/admin/exportCsv';
 import { printOrder, printEvent, printProduct } from '../components/admin/print';
@@ -59,6 +61,7 @@ const NAV = [
   { id: 'blogs',      label: 'Blogs',             Icon: BookOpen },
   { id: 'partners',   label: 'Delivery Partners', Icon: Bike },
   { id: 'cms',        label: 'Homepage CMS',     Icon: LayoutGrid },
+  { id: 'master',     label: 'Master',            Icon: Database },
   { id: 'admins',     label: 'Admins',            Icon: Shield },
   { id: 'settings',   label: 'Settings',          Icon: SettingsIcon },
 ];
@@ -72,6 +75,13 @@ function csvToArr(s) {
 export default function AdminPage() {
   const { state, actions } = useApp();
   const { admin: currentAdmin, isAuthenticated, bootstrapping, logout } = useAuth();
+  const { options: masterOptions } = useMaster();
+
+  // Master-driven dropdowns (fall back to built-ins until the lists load).
+  const categoryOptions = masterOptions('product-category');
+  const productTypeOptions = masterOptions('product-type');
+  const orderStatusOptions = masterOptions('order-status');
+  const eventPackageTypeOptions = masterOptions('event-package-type');
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -854,6 +864,7 @@ export default function AdminPage() {
           {activeTab === 'bookings' && <BookingsTab />}
           {activeTab === 'blogs' && <BlogsTab />}
           {activeTab === 'cms' && <CmsTab />}
+          {activeTab === 'master' && <MasterTab />}
           {activeTab === 'settings' && <SettingsTab />}
 
           {/* ── Admins ── */}
@@ -1007,7 +1018,8 @@ export default function AdminPage() {
               <div className="form-group">
                 <label>Status</label>
                 <select value={orderForm.status} onChange={(e) => setOrderForm((f) => ({ ...f, status: e.target.value }))}>
-                  {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {(orderStatusOptions.length ? orderStatusOptions : ORDER_STATUSES.map((s) => ({ value: s, label: s })))
+                    .map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
               <div className="form-group">
@@ -1040,11 +1052,13 @@ export default function AdminPage() {
                 <div className="form-group">
                   <label>Package Type *</label>
                   <select name="packageType" value={eventForm.packageType} onChange={handleEventChange}>
-                    <option value="wedding">Wedding</option>
-                    <option value="birthday">Birthday</option>
-                    <option value="corporate">Corporate</option>
-                    <option value="anniversary">Anniversary</option>
-                    <option value="other">Other</option>
+                    {(eventPackageTypeOptions.length ? eventPackageTypeOptions : [
+                      { value: 'wedding', label: 'Wedding' },
+                      { value: 'birthday', label: 'Birthday' },
+                      { value: 'corporate', label: 'Corporate' },
+                      { value: 'anniversary', label: 'Anniversary' },
+                      { value: 'other', label: 'Other' },
+                    ]).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
               </div>
@@ -1144,19 +1158,24 @@ export default function AdminPage() {
                 <div className="form-group"><label>Name *</label><input name="name" value={form.name} onChange={handleChange} placeholder="e.g. Red Rose Bouquet" /></div>
                 <div className="form-group"><label>Category *</label>
                   <select name="category" value={form.category} onChange={handleChange}>
-                    <option value="flowers">Flowers</option>
-                    <option value="gifts">Gifts</option>
-                    <option value="parties">Parties</option>
+                    {(categoryOptions.length ? categoryOptions : [
+                      { value: 'flowers', label: 'Flowers' },
+                      { value: 'gifts', label: 'Gifts' },
+                      { value: 'parties', label: 'Parties' },
+                    ]).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
               </div>
               <div className="form-group"><label>Product Type</label>
                 <div className="type-radio-group">
-                  {['natural', 'artificial'].map((t) => (
-                    <label key={t} className={`type-radio-btn ${form.type === t ? 'active' : ''}`}>
-                      <input type="radio" name="type" value={t} checked={form.type === t} onChange={handleChange} />
-                      {t === 'natural' ? <Leaf size={13} /> : <Sparkles size={13} />}
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                  {(productTypeOptions.length ? productTypeOptions : [
+                    { value: 'natural', label: 'Natural' },
+                    { value: 'artificial', label: 'Artificial' },
+                  ]).map((t) => (
+                    <label key={t.value} className={`type-radio-btn ${form.type === t.value ? 'active' : ''}`}>
+                      <input type="radio" name="type" value={t.value} checked={form.type === t.value} onChange={handleChange} />
+                      {t.value === 'natural' ? <Leaf size={13} /> : <Sparkles size={13} />}
+                      {t.label}
                     </label>
                   ))}
                 </div>
