@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Calendar, ArrowLeft } from 'lucide-react';
-import { bookings as bookingsApi, stores as storesApi } from '../api/endpoints';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { CheckCircle2, Calendar, PartyPopper, ArrowLeft } from 'lucide-react';
+import { bookings as bookingsApi } from '../api/endpoints';
 import { useUserAuth } from '../context/UserAuthContext';
+import { useMaster } from '../api/useMaster';
 import './BookingPage.css';
 
 export default function BookingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isParty = new URLSearchParams(location.search).get('for') === 'party';
   const { user } = useUserAuth();
-  const [storesList, setStoresList] = useState([]);
+  const { options } = useMaster();
+  const serviceTypeOptions = options('booking-service-type');
   const [form, setForm] = useState({
     customerName: '',
     customerPhone: '',
     customerEmail: '',
     customerAddress: '',
-    storeId: '',
-    serviceType: 'consultation',
+    serviceType: isParty ? 'event-planning' : 'consultation',
     occasion: '',
     preferredDate: '',
     preferredTime: '',
@@ -26,9 +29,6 @@ export default function BookingPage() {
   const [error, setError] = useState('');
   const [submitted, setSubmitted] = useState(null);
 
-  useEffect(() => {
-    storesApi.list().then(setStoresList).catch(() => {});
-  }, []);
   useEffect(() => {
     if (user) {
       setForm((f) => ({
@@ -74,9 +74,13 @@ export default function BookingPage() {
     <div className="container booking-page">
       <button className="back-btn" onClick={() => navigate(-1)}><ArrowLeft size={15} /> Back</button>
       <header className="booking-header">
-        <Calendar size={32} color="#c1440e" />
-        <h1>Book a Consultation</h1>
-        <p>Tell us a bit about your occasion and we'll get back to you within one business day.</p>
+        {isParty ? <PartyPopper size={32} color="#c1440e" /> : <Calendar size={32} color="#c1440e" />}
+        <h1>{isParty ? 'Make Your Party' : 'Book a Consultation'}</h1>
+        <p>
+          {isParty
+            ? "Tell us about your event and describe exactly what you want — we'll plan it and get back to you within one business day."
+            : "Tell us a bit about your occasion and we'll get back to you within one business day."}
+        </p>
       </header>
 
       <form onSubmit={submit} className="booking-form">
@@ -90,28 +94,21 @@ export default function BookingPage() {
             <input name="customerPhone" value={form.customerPhone} onChange={handle} required placeholder="+1 555 555 5555" />
           </div>
         </div>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" name="customerEmail" value={form.customerEmail} onChange={handle} />
-          </div>
-          <div className="form-group">
-            <label>Preferred Store</label>
-            <select name="storeId" value={form.storeId} onChange={handle}>
-              <option value="">Any store</option>
-              {storesList.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
+        <div className="form-group">
+          <label>Email</label>
+          <input type="email" name="customerEmail" value={form.customerEmail} onChange={handle} />
         </div>
         <div className="form-row">
           <div className="form-group">
             <label>Service *</label>
             <select name="serviceType" value={form.serviceType} onChange={handle}>
-              <option value="consultation">Consultation</option>
-              <option value="event-planning">Event Planning</option>
-              <option value="workshop">Workshop</option>
-              <option value="tasting">Tasting</option>
-              <option value="other">Other</option>
+              {(serviceTypeOptions.length ? serviceTypeOptions : [
+                { value: 'consultation', label: 'Consultation' },
+                { value: 'event-planning', label: 'Event Planning' },
+                { value: 'workshop', label: 'Workshop' },
+                { value: 'tasting', label: 'Tasting' },
+                { value: 'other', label: 'Other' },
+              ]).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
           <div className="form-group">
@@ -140,12 +137,21 @@ export default function BookingPage() {
           />
         </div>
         <div className="form-group">
-          <label>Notes</label>
-          <textarea rows={3} name="notes" value={form.notes} onChange={handle} placeholder="Anything else we should know…" />
+          <label>{isParty ? 'Describe Your Event *' : 'Notes'}</label>
+          <textarea
+            rows={isParty ? 5 : 3}
+            name="notes"
+            value={form.notes}
+            onChange={handle}
+            required={isParty}
+            placeholder={isParty
+              ? 'Tell us your vision — theme, guest count, budget, decorations, food, anything you have in mind…'
+              : 'Anything else we should know…'}
+          />
         </div>
         {error && <p className="booking-error">{error}</p>}
         <button type="submit" className="btn btn-primary btn-full" disabled={busy}>
-          {busy ? 'Submitting…' : 'Request Booking'}
+          {busy ? 'Submitting…' : (isParty ? 'Submit Party Request' : 'Request Booking')}
         </button>
       </form>
     </div>
