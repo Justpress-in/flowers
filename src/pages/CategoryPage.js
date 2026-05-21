@@ -5,7 +5,7 @@ import WhatsAppQR from '../components/WhatsAppQR';
 import PackagesSection from '../components/PackagesSection';
 import {
   Flower2, Gift, PartyPopper,
-  ArrowRight, Star, MapPin, Package,
+  ArrowRight, Star, Package,
   Leaf, Sparkles, X, ChevronDown,
   ShoppingBag, Check,
 } from 'lucide-react';
@@ -42,7 +42,6 @@ function ProductCard({ product, accentColor }) {
   const prices = product.storeInventory.map(s => s.price);
   const lowestPrice = Math.min(...prices);
   const totalStock = product.storeInventory.reduce((s, i) => s + i.stock, 0);
-  const storeCount = product.storeInventory.length;
   const isNatural = product.type === 'natural';
   const isBestseller = product.tags.includes('bestseller');
   const isPremium = product.tags.includes('premium');
@@ -85,7 +84,6 @@ function ProductCard({ product, accentColor }) {
         <p className="cp-card-desc">{product.description}</p>
 
         <div className="cp-card-meta">
-          <span><MapPin size={11} /> {storeCount} store{storeCount !== 1 ? 's' : ''}</span>
           {product.availableColors.length > 0 && (
             <span><Package size={11} /> {product.availableColors.length} colours</span>
           )}
@@ -109,7 +107,6 @@ export default function CategoryPage({ category }) {
   const { state } = useApp();
   const location = useLocation();
   const [sortBy, setSortBy]         = useState('default');
-  const [storeFilter, setStoreFilter] = useState('all');
   const [typeFilter, setTypeFilter]  = useState('all');
 
   const meta = META[category] || META.flowers;
@@ -130,7 +127,6 @@ export default function CategoryPage({ category }) {
   ].filter(Boolean);
 
   let products = state.products.filter(p => p.category === category);
-  if (storeFilter !== 'all') products = products.filter(p => p.storeInventory.some(s => s.storeId === storeFilter && s.stock > 0));
   if (typeFilter !== 'all')  products = products.filter(p => p.type === typeFilter);
 
   // CMS filters from query string.
@@ -167,8 +163,8 @@ export default function CategoryPage({ category }) {
 
   const featured = products.find(p => p.tags.includes('bestseller') || p.tags.includes('premium'));
   const rest = featured ? products.filter(p => p.id !== featured.id) : products;
-  const hasFilters = storeFilter !== 'all' || typeFilter !== 'all' || sortBy !== 'default';
-  function clearFilters() { setStoreFilter('all'); setTypeFilter('all'); setSortBy('default'); }
+  const hasFilters = typeFilter !== 'all' || sortBy !== 'default';
+  function clearFilters() { setTypeFilter('all'); setSortBy('default'); }
 
   const totalAllProducts = state.products.filter(p => p.category === category).length;
 
@@ -200,8 +196,6 @@ export default function CategoryPage({ category }) {
 
           <div className="cat-hero-meta">
             <span>{totalAllProducts} products</span>
-            <span className="cat-hero-dot" />
-            <span>{state.stores.length} stores</span>
           </div>
         </div>
       </div>
@@ -230,20 +224,6 @@ export default function CategoryPage({ category }) {
           </div>
 
           <div className="filter-sep" />
-
-          {/* Store select */}
-          <div className="filter-select-wrap">
-            <MapPin size={13} className="filter-select-icon" />
-            <select
-              value={storeFilter}
-              onChange={e => setStoreFilter(e.target.value)}
-              className="filter-select-sm"
-            >
-              <option value="all">All Stores</option>
-              {state.stores.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <ChevronDown size={12} className="filter-select-arrow" />
-          </div>
 
           {/* Sort select */}
           <div className="filter-select-wrap">
@@ -319,22 +299,6 @@ export default function CategoryPage({ category }) {
                       </div>
                       <h2>{featured.name}</h2>
                       <p>{featured.description}</p>
-
-                      <div className="cat-featured-stores">
-                        {featured.storeInventory.map(si => {
-                          const store = state.stores.find(s => s.id === si.storeId);
-                          return (
-                            <div key={si.storeId} className="cat-feat-store-row">
-                              <div className="cat-feat-store-dot" style={{ background: meta.color }} />
-                              <span>{store?.name}</span>
-                              <strong style={{ color: meta.color }}>${si.price}</strong>
-                              <span className={`cp-stock-badge ${si.stock < 5 ? 'low' : 'in'}`}>
-                                {si.stock} left
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
 
                       <div className="cat-featured-footer">
                         <div className="cat-feat-pricing">

@@ -5,7 +5,6 @@ import ProductCard from '../components/ProductCard';
 import BannerSlider from '../components/BannerSlider';
 import {
   Flower2, Gift, PartyPopper,
-  Truck, MessageSquare, Store, Leaf,
   ArrowRight, Star, Sparkles,
 } from 'lucide-react';
 import './HomePage.css';
@@ -89,7 +88,7 @@ export default function HomePage() {
               <span>·</span>
               <span>2,000+ orders</span>
               <span>·</span>
-              <span>3 locations</span>
+              <span>Same-day delivery</span>
             </div>
           </div>
           <div className="hero-image-grid">
