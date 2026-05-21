@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Loader2, AlertTriangle, Plus, Pencil, Trash2, X, Sparkles, Tag, MapPin, Palette, LayoutGrid, Link2, Check,
+  Loader2, AlertTriangle, Plus, Pencil, Trash2, X, Sparkles, Tag, Palette, LayoutGrid, Link2, Check,
 } from 'lucide-react';
 import CrudTab from './CrudTab';
 import { ImageUploadField } from './ImageUploadField';
 import {
   priceTiers as priceTiersApi,
-  cities as citiesApi,
   homeColours as homeColoursApi,
   collections as collectionsApi,
   products as productsApi,
 } from '../../api/endpoints';
 
+// Cities moved to the Master section (single home for basic/master data).
 const SUBTABS = [
   { id: 'tiers',       label: 'Shop By Price',  Icon: Tag },
-  { id: 'cities',      label: 'Cities',          Icon: MapPin },
   { id: 'colours',     label: 'Colours',         Icon: Palette },
   { id: 'showstopper', label: 'Showstopper',     Icon: Sparkles },
   { id: 'pair',        label: 'Pair With',       Icon: Link2 },
@@ -48,7 +47,6 @@ export default function CmsTab() {
       </p>
 
       {sub === 'tiers' && <PriceTiersTab />}
-      {sub === 'cities' && <CitiesTab />}
       {sub === 'colours' && <ColoursTab />}
       {sub === 'showstopper' && <CollectionTab kind="showstopper" title="Showstopper Collections" />}
       {sub === 'pair' && <CollectionTab kind="pair" title="Pair With Flowers" />}
@@ -77,31 +75,6 @@ function PriceTiersTab() {
         { name: 'minPrice', label: 'Min Price (blank = no lower bound)', type: 'number', min: 0, nullable: true },
         { name: 'maxPrice', label: 'Max Price (blank = no upper bound)', type: 'number', min: 0, nullable: true },
         { name: 'currencySymbol', label: 'Currency Symbol', placeholder: '$' },
-        { name: 'order', label: 'Display Order', type: 'number' },
-        { name: 'active', label: 'Active', type: 'checkbox' },
-      ]}
-    />
-  );
-}
-
-/* ── Cities ────────────────────────────────────────────────── */
-function CitiesTab() {
-  return (
-    <CrudTab
-      title="City"
-      api={citiesApi}
-      emptyForm={{ name: '', icon: '', order: 0, active: true }}
-      columns={[
-        { key: 'name', label: 'Name', render: (r) => <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {r.icon && <img src={r.icon} alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />}
-          <strong>{r.name}</strong>
-        </div> },
-        { key: 'order', label: 'Order' },
-        { key: 'active', label: 'Active', render: (r) => r.active ? <span className="badge badge-green">live</span> : <span className="badge badge-red">off</span> },
-      ]}
-      fields={[
-        { name: 'name', label: 'City Name', required: true, placeholder: 'Riyadh' },
-        { name: 'icon', label: 'Icon', type: 'image' },
         { name: 'order', label: 'Display Order', type: 'number' },
         { name: 'active', label: 'Active', type: 'checkbox' },
       ]}
