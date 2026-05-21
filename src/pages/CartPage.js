@@ -69,7 +69,6 @@ export default function CartPage() {
               <div className="cart-item-info">
                 <Link to={`/product/${item.productId}`} className="cart-item-name">{item.productName}</Link>
                 <div className="cart-item-meta">
-                  <span>Store: <strong>{item.storeName}</strong></span>
                   {item.color && <span>Color: <strong>{item.color}</strong></span>}
                   {item.size && <span>Size: <strong>{item.size}</strong></span>}
                 </div>
@@ -78,7 +77,7 @@ export default function CartPage() {
                 )}
                 {!item.inStock && (
                   <p className="cart-item-stock-warn">
-                    <AlertTriangle size={13} /> Only {item.available} available at this store
+                    <AlertTriangle size={13} /> Only {item.available} available
                   </p>
                 )}
               </div>

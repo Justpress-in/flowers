@@ -316,7 +316,6 @@ export default function CheckoutPage() {
                 {it.productImage && <img src={it.productImage} alt={it.productName} />}
                 <div className="checkout-summary-item-info">
                   <strong>{it.productName}</strong>
-                  <span>{it.storeName}</span>
                   <span>{it.quantity} × ${it.unitPrice.toFixed(2)}</span>
                 </div>
                 <span className="checkout-summary-item-price">${it.lineTotal.toFixed(2)}</span>

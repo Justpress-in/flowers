@@ -39,7 +39,6 @@ function OrderCard({ order }) {
         <div class="row"><span class="label">Product</span><span>${order.productName}</span></div>
         <div class="row"><span class="label">Quantity</span><span>${order.quantity || 1}</span></div>
         ${order.color ? `<div class="row"><span class="label">Color</span><span>${order.color}</span></div>` : ''}
-        <div class="row"><span class="label">Store</span><span>${order.storeName}</span></div>
         ${order.customDescription ? `<div class="row"><span class="label">Note</span><span>${order.customDescription}</span></div>` : ''}
         ${order.type === 'gift' && order.giftDetails ? `
           <hr/>
@@ -78,7 +77,6 @@ function OrderCard({ order }) {
           <h3>{order.productName}{order.quantity > 1 && <span style={{ fontWeight: 400, color: '#666' }}> × {order.quantity}</span>}</h3>
           {order.color && <p>Color: <strong>{order.color}</strong></p>}
           {order.size && <p>Size: <strong>{order.size}</strong></p>}
-          <p>Store: <strong>{order.storeName}</strong></p>
           {order.customDescription && <p className="order-custom-desc">Note: "{order.customDescription}"</p>}
         </div>
 
