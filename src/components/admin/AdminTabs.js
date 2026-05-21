@@ -20,6 +20,7 @@ import {
 import { exportToCsv } from './exportCsv';
 import { ImageUploadField } from './ImageUploadField';
 import { printBooking } from './print';
+import { useMaster } from '../../api/useMaster';
 
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString();
@@ -101,7 +102,10 @@ export function UsersTab() {
 }
 
 /* ── Coupons ──────────────────────────────────── */
-export const CouponsTab = () => (
+export const CouponsTab = () => {
+  const { options } = useMaster();
+  const typeOptions = options('coupon-type');
+  return (
   <CrudTab
     title="Coupons"
     api={coupons}
@@ -122,7 +126,7 @@ export const CouponsTab = () => (
     fields={[
       { name: 'code', label: 'Coupon Code', required: true, placeholder: 'SUMMER20' },
       { name: 'description', label: 'Description', type: 'textarea', rows: 2 },
-      { name: 'type', label: 'Type', type: 'select', required: true, options: [{ value: 'percent', label: 'Percent off' }, { value: 'flat', label: 'Flat amount off' }] },
+      { name: 'type', label: 'Type', type: 'select', required: true, options: typeOptions.length ? typeOptions : [{ value: 'percent', label: 'Percent off' }, { value: 'flat', label: 'Flat amount off' }] },
       { name: 'value', label: 'Value', type: 'number', required: true, hint: 'Percent (1-100) or flat amount ($)', min: 0 },
       { name: 'minOrder', label: 'Min Order Subtotal ($)', type: 'number', min: 0 },
       { name: 'maxDiscount', label: 'Max Discount Cap ($)', type: 'number', min: 0, hint: '0 = no cap (only matters for percent)' },
@@ -133,10 +137,14 @@ export const CouponsTab = () => (
       { name: 'active', label: 'Active', type: 'checkbox' },
     ]}
   />
-);
+  );
+};
 
 /* ── Packages ─────────────────────────────────── */
-export const PackagesTab = () => (
+export const PackagesTab = () => {
+  const { options } = useMaster();
+  const eventTypeOptions = options('event-package-type');
+  return (
   <CrudTab
     title="Event Packages"
     api={packages}
@@ -157,7 +165,7 @@ export const PackagesTab = () => (
     fields={[
       { name: 'name', label: 'Package Name', required: true },
       { name: 'eventType', label: 'Event Type', type: 'select', required: true,
-        options: ['wedding', 'birthday', 'corporate', 'anniversary', 'baby-shower', 'other'] },
+        options: eventTypeOptions.length ? eventTypeOptions : ['wedding', 'birthday', 'corporate', 'anniversary', 'baby-shower', 'other'] },
       { name: 'description', label: 'Description', type: 'textarea', rows: 3 },
       { name: 'image', label: 'Cover Image', type: 'image' },
       { name: 'gallery', label: 'Gallery Images', type: 'images-csv' },
@@ -170,7 +178,8 @@ export const PackagesTab = () => (
       { name: 'active', label: 'Active', type: 'checkbox' },
     ]}
   />
-);
+  );
+};
 
 /* ── Blogs ────────────────────────────────────── */
 export const BlogsTab = () => (
@@ -334,6 +343,8 @@ export function BookingsTab() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
+  const { options } = useMaster();
+  const statusOptions = options('booking-status');
 
   async function load() {
     setLoading(true); setError('');
@@ -453,7 +464,8 @@ export function BookingsTab() {
               <div className="form-group">
                 <label>Status</label>
                 <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>
-                  {['requested','confirmed','completed','cancelled','rescheduled'].map(s => <option key={s} value={s}>{s}</option>)}
+                  {(statusOptions.length ? statusOptions : ['requested','confirmed','completed','cancelled','rescheduled'].map(s => ({ value: s, label: s })))
+                    .map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
               </div>
               <div className="form-row">
@@ -564,6 +576,8 @@ export function ReviewsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const { options } = useMaster();
+  const statusOptions = options('review-status');
 
   async function load() {
     setLoading(true); setError('');
@@ -594,9 +608,11 @@ export function ReviewsTab() {
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
           style={{ padding: '0.45rem 0.7rem', border: '1px solid #d1d5db', borderRadius: 7, fontSize: '0.85rem' }}>
           <option value="">All</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
+          {(statusOptions.length ? statusOptions : [
+            { value: 'pending', label: 'Pending' },
+            { value: 'approved', label: 'Approved' },
+            { value: 'rejected', label: 'Rejected' },
+          ]).map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
       </div>
       {error && <div className="adm-alert" style={{ background: 'rgba(220,38,38,0.08)', color: '#b91c1c' }}><AlertTriangle size={16} /> {error}</div>}
@@ -710,6 +726,31 @@ export function SettingsTab() {
           <div className="form-row">
             <div className="form-group"><label>WhatsApp</label><input value={form.whatsappNumber || ''} onChange={(e) => set('whatsappNumber', e.target.value)} /></div>
             <div className="form-group"><label>Address</label><input value={form.contactAddress || ''} onChange={(e) => set('contactAddress', e.target.value)} /></div>
+          </div>
+        </fieldset>
+
+        <fieldset style={fsStyle}>
+          <legend style={lgStyle}>Order Tracking</legend>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Tracking Portal URL</label>
+              <input
+                value={form.trackingUrl || ''}
+                onChange={(e) => set('trackingUrl', e.target.value)}
+                placeholder="https://track.yourcourier.com"
+              />
+              <p style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>
+                The delivery service's tracking page. The storefront "Tracking" menu link opens this. Leave blank to send customers to their order history instead.
+              </p>
+            </div>
+            <div className="form-group">
+              <label>Tracking Link Label</label>
+              <input
+                value={form.trackingLabel || ''}
+                onChange={(e) => set('trackingLabel', e.target.value)}
+                placeholder="Track Order"
+              />
+            </div>
           </div>
         </fieldset>
 
