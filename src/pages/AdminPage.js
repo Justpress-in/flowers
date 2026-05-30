@@ -1335,7 +1335,14 @@ export default function AdminPage() {
                     onChange={(e) => setStoreRow((r) => ({ ...r, storeId: e.target.value }))}
                   >
                     <option value="">Select store…</option>
-                    {state.stores.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    {state.stores.map((s) => {
+                      const taken = form.storeInventory.some((inv) => inv.storeId === s.id);
+                      return (
+                        <option key={s.id} value={s.id} disabled={taken}>
+                          {s.name}{taken ? ' — already added' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                   <input type="number" placeholder="Stock $" title="Stock / cost price" value={storeRow.stockPrice}
                     onChange={(e) => setStoreRow((r) => ({ ...r, stockPrice: e.target.value }))} min="0" />

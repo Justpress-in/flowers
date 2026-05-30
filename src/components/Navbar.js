@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Flower2, Menu, X, LayoutDashboard, ShoppingCart, User as UserIcon, LogOut, Package, Truck, ChevronDown } from 'lucide-react';
+import { Flower2, Menu, X, ShoppingCart, User as UserIcon, LogOut, Package, Truck, ChevronDown } from 'lucide-react';
 import { useUserAuth } from '../context/UserAuthContext';
 import { useCart } from '../context/CartContext';
 import { settings as settingsApi } from '../api/endpoints';
@@ -114,10 +114,6 @@ export default function Navbar() {
                 <UserIcon size={15} /> Sign In
               </button>
             )}
-
-            <Link to="/admin" className="btn btn-primary navbar-admin">
-              <LayoutDashboard size={15} strokeWidth={2} /> Admin
-            </Link>
           </div>
 
           <button className="navbar-burger" onClick={() => setMenuOpen((o) => !o)} aria-label="Menu">
@@ -183,10 +179,6 @@ export default function Navbar() {
             <UserIcon size={15} /> Sign In
           </button>
         )}
-
-        <Link to="/admin" className="btn btn-primary navbar-admin" onClick={closeMenu}>
-          <LayoutDashboard size={15} strokeWidth={2} /> Admin
-        </Link>
       </div>
     </header>
   );
