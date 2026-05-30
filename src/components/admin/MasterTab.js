@@ -128,7 +128,7 @@ function GroupTab({ group, singular, variant }) {
         ]}
         fields={[
           { name: 'label', label: 'Label', required: true, placeholder: 'e.g. Out for Delivery' },
-          { name: 'color', label: 'Badge Colour', placeholder: '#2563eb', hint: 'CSS colour used for the status badge' },
+          { name: 'color', label: 'Badge Colour', type: 'color', hint: 'Pick from the swatch or paste a hex code' },
           { name: 'order', label: 'Display Order', type: 'number' },
           { name: 'isDefault', label: 'Default for new records', type: 'checkbox' },
           { name: 'active', label: 'Active', type: 'checkbox' },

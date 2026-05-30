@@ -255,6 +255,36 @@ export default function CrudTab({
                     </div>
                   );
                 }
+                if (f.type === 'color') {
+                  const safeVal = /^#[0-9a-f]{6}$/i.test(String(val || '')) ? val : '#000000';
+                  return (
+                    <div key={f.name} className="form-group">
+                      <label>{f.label}{f.required ? ' *' : ''}</label>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <input
+                          type="color"
+                          name={f.name}
+                          value={safeVal}
+                          onChange={handleChange}
+                          style={{
+                            width: 48, height: 38, padding: 2,
+                            border: '1px solid #d1d5db', borderRadius: 7,
+                            cursor: 'pointer', background: '#fff',
+                          }}
+                        />
+                        <input
+                          type="text"
+                          name={f.name}
+                          value={val || ''}
+                          onChange={handleChange}
+                          placeholder={f.placeholder || '#2563eb'}
+                          style={{ flex: 1 }}
+                        />
+                      </div>
+                      {f.hint && <p style={{ fontSize: '0.75rem', color: '#888' }}>{f.hint}</p>}
+                    </div>
+                  );
+                }
                 return (
                   <div key={f.name} className="form-group">
                     <label>{f.label}{f.required ? ' *' : ''}</label>

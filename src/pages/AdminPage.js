@@ -49,12 +49,11 @@ const EMPTY_PASSWORD_FORM = { currentPassword: '', password: '' };
 const NAV = [
   { id: 'dashboard',  label: 'Dashboard',        Icon: LayoutDashboard },
   { id: 'products',   label: 'Products',          Icon: Package },
-  { id: 'parties',    label: 'Parties & Events',  Icon: PartyPopper },
+  { id: 'parties',    label: 'Bookings & Events', Icon: PartyPopper },
   { id: 'packages',   label: 'Packages',          Icon: BadgePercent },
   { id: 'inventory',  label: 'Store Inventory',   Icon: StoreIcon },
   { id: 'stores',     label: 'Stores',            Icon: MapPin },
   { id: 'orders',     label: 'Orders',            Icon: ClipboardList },
-  { id: 'bookings',   label: 'Bookings',          Icon: CalendarCheck2 },
   { id: 'customers',  label: 'Customers',         Icon: UserCircle2 },
   { id: 'reviews',    label: 'Reviews',           Icon: Star },
   { id: 'coupons',    label: 'Coupons',           Icon: Ticket },
@@ -87,6 +86,7 @@ export default function AdminPage() {
   const eventPackageTypeOptions = masterOptions('event-package-type');
 
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [partiesSub, setPartiesSub] = useState('events'); // sub-tab inside Bookings & Events
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState(null); // { type: 'error' | 'success', text }
@@ -495,7 +495,6 @@ export default function AdminPage() {
     await logout();
   }
 
-  const catProducts = (cat) => state.products.filter((p) => p.category === cat);
   const totalRevenue = state.orders.reduce((s, o) => s + Number(o.price || 0), 0);
   const lowStockProducts = state.products.filter(
     (p) => (p.storeInventory || []).reduce((s, i) => s + i.stock, 0) < 10
@@ -659,53 +658,88 @@ export default function AdminPage() {
           {activeTab === 'products' && (
             <div className="adm-section">
               <div className="adm-section-header">
-                <h2>All Products <span className="adm-count-badge">{state.products.filter((p) => p.category !== 'parties').length}</span></h2>
+                <h2>All Products <span className="adm-count-badge">{state.products.length}</span></h2>
                 <button className="btn btn-primary" onClick={openAddForm} disabled={busy}><Plus size={15} /> Add Product</button>
               </div>
-              {['flowers', 'gifts'].map((cat) => (
-                <div key={cat} className="adm-cat-group">
-                  <h3 className="adm-cat-label">
-                    {cat === 'flowers' ? <Flower2 size={14} /> : <Gift size={14} />}
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </h3>
-                  <div className="adm-table">
-                    <div className="adm-table-head">
-                      <span>Product</span><span>Type</span><span>Stores</span><span>Price Range</span><span>Stock</span><span>Variations</span><span>Actions</span>
-                    </div>
-                    {catProducts(cat).map((p) => {
-                      const prices = (p.storeInventory || []).map((s) => s.price);
-                      const totalStock = (p.storeInventory || []).reduce((n, s) => n + s.stock, 0);
-                      const varCount = (p.variations || []).length;
-                      return (
-                        <div key={p.id} className="adm-table-row">
-                          <div className="adm-prod-info">
-                            <img src={p.image} alt={p.name} />
-                            <div><strong>{p.name}</strong><p>{(p.tags || []).join(', ')}</p></div>
-                          </div>
-                          <span className={`adm-type-pill ${p.type}`}>
-                            {p.type === 'natural' ? <Leaf size={10} /> : <Sparkles size={10} />} {p.type}
-                          </span>
-                          <span>{(p.storeInventory || []).length}</span>
-                          <span>{prices.length ? `$${Math.min(...prices)} – $${Math.max(...prices)}` : '—'}</span>
-                          <span className={totalStock < 5 ? 'adm-low' : ''}>{totalStock}</span>
-                          <span>{varCount > 0 ? <span className="badge badge-blue">{varCount}</span> : <span style={{ color: '#ccc' }}>—</span>}</span>
-                          <div className="adm-row-actions">
-                            <button className="btn btn-ghost" title="Edit" onClick={() => openEditForm(p)}><Pencil size={13} /></button>
-                            <button className="btn btn-ghost" title="Print details" onClick={() => printProduct(p, state.stores)}><Printer size={13} /></button>
-                            <button className="btn btn-ghost adm-del-btn" title="Delete" onClick={() => deleteProduct(p.id)}><Trash2 size={13} /></button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {catProducts(cat).length === 0 && <div className="adm-table-empty">No products yet.</div>}
-                  </div>
+              <div className="adm-table">
+                <div className="adm-table-head">
+                  <span>Product</span><span>Category</span><span>Type</span><span>Price Range</span><span>Stock</span><span>Variations</span><span>Actions</span>
                 </div>
-              ))}
+                {state.products.length === 0 && <div className="adm-table-empty">No products yet.</div>}
+                {state.products.map((p) => {
+                  const prices = (p.storeInventory || []).map((s) => s.price);
+                  const totalStock = (p.storeInventory || []).reduce((n, s) => n + s.stock, 0);
+                  const varCount = (p.variations || []).length;
+                  return (
+                    <div key={p.id} className="adm-table-row">
+                      <div className="adm-prod-info">
+                        <img src={p.image} alt={p.name} />
+                        <div><strong>{p.name}</strong><p>{(p.tags || []).join(', ')}</p></div>
+                      </div>
+                      <span
+                        className="badge badge-orange"
+                        title={p.category}
+                        style={{
+                          textTransform: 'capitalize',
+                          justifySelf: 'start',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '100%',
+                        }}
+                      >
+                        {p.category}
+                      </span>
+                      <span className={`adm-type-pill ${p.type}`}>
+                        {p.type === 'natural' ? <Leaf size={10} /> : <Sparkles size={10} />} {p.type}
+                      </span>
+                      <span>{prices.length ? `$${Math.min(...prices)} – $${Math.max(...prices)}` : '—'}</span>
+                      <span className={totalStock < 5 ? 'adm-low' : ''}>{totalStock}</span>
+                      <span>{varCount > 0 ? <span className="badge badge-blue">{varCount}</span> : <span style={{ color: '#ccc' }}>—</span>}</span>
+                      <div className="adm-row-actions">
+                        <button
+                          className="btn btn-ghost"
+                          title="View on storefront"
+                          onClick={() => window.open(`/product/${p.id}`, '_blank', 'noopener')}
+                        >
+                          <Eye size={13} />
+                        </button>
+                        <button className="btn btn-ghost" title="Edit" onClick={() => openEditForm(p)}><Pencil size={13} /></button>
+                        <button className="btn btn-ghost" title="Print details" onClick={() => printProduct(p, state.stores)}><Printer size={13} /></button>
+                        <button className="btn btn-ghost adm-del-btn" title="Delete" onClick={() => deleteProduct(p.id)}><Trash2 size={13} /></button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {/* ── Parties & Events ── */}
+          {/* ── Bookings & Events (combined) ── */}
           {activeTab === 'parties' && (
+            <>
+              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.9rem' }}>
+                <button
+                  className={`btn ${partiesSub === 'events' ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setPartiesSub('events')}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <PartyPopper size={14} /> Parties &amp; Events ({state.events.length})
+                </button>
+                <button
+                  className={`btn ${partiesSub === 'bookings' ? 'btn-primary' : 'btn-ghost'}`}
+                  onClick={() => setPartiesSub('bookings')}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <CalendarCheck2 size={14} /> Bookings &amp; Consultations
+                </button>
+              </div>
+
+              {partiesSub === 'bookings' && <BookingsTab />}
+            </>
+          )}
+
+          {activeTab === 'parties' && partiesSub === 'events' && (
             <div className="adm-section">
               <div className="adm-section-header">
                 <h2>Parties & Events <span className="adm-count-badge">{state.events.length}</span></h2>
@@ -910,7 +944,6 @@ export default function AdminPage() {
           {activeTab === 'testimonials' && <TestimonialsTab />}
           {activeTab === 'partners' && <DeliveryPartnersTab />}
           {activeTab === 'banners' && <BannersTab />}
-          {activeTab === 'bookings' && <BookingsTab />}
           {activeTab === 'blogs' && <BlogsTab />}
           {activeTab === 'cms' && <CmsTab />}
           {activeTab === 'master' && <MasterTab />}
