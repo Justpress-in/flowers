@@ -15,7 +15,7 @@ import {
   Megaphone, MessageSquareQuote, Bike, CalendarCheck2,
   Star, Settings as SettingsIcon, Image as ImagesIcon, Database,
 } from 'lucide-react';
-import { admins as adminsApi } from '../api/endpoints';
+import { admins as adminsApi, upload as uploadApi } from '../api/endpoints';
 import { useMaster } from '../api/useMaster';
 import {
   UsersTab, SettingsTab, CouponsTab, PackagesTab, BlogsTab,
@@ -27,13 +27,16 @@ import MasterTab from '../components/admin/MasterTab';
 import { ImageUploadField, ImagesUploadField } from '../components/admin/ImageUploadField';
 import { exportToCsv } from '../components/admin/exportCsv';
 import { printOrder, printEvent, printProduct } from '../components/admin/print';
-import { Eye, Download, LayoutGrid, Printer } from 'lucide-react';
+import { Eye, Download, LayoutGrid, Printer, Upload } from 'lucide-react';
 import './AdminPage.css';
 
 const EMPTY_PRODUCT = {
   name: '', category: 'flowers', type: 'natural',
   description: '', image: '', images: '', sizes: '', tags: '', availableColors: '',
-  allowCustomDescription: true, storeInventory: [],
+  allowCustomDescription: true, storeInventory: [], variations: [],
+};
+const EMPTY_VAR_ROW = {
+  varId: '', name: '', sku: '', color: '', size: '', images: '', stock: '', priceAdjustment: '',
 };
 const EMPTY_STORE = { name: '', location: '', phone: '', email: '' };
 const EMPTY_EVENT = {
@@ -95,6 +98,8 @@ export default function AdminPage() {
   const [storeRow, setStoreRow]       = useState({
     storeId: '', stockPrice: '', basePrice: '', offeredPrice: '', discountPercent: '', stock: '',
   });
+  const [varRow, setVarRow]           = useState(EMPTY_VAR_ROW);
+  const [editingVarId, setEditingVarId] = useState(null);
 
   // store form
   const [showStoreForm, setShowStoreForm]     = useState(false);
@@ -176,6 +181,7 @@ export default function AdminPage() {
   /* ── product handlers ── */
   function openAddForm() {
     setForm(EMPTY_PRODUCT); setEditingId(null); setShowForm(true);
+    setVarRow(EMPTY_VAR_ROW); setEditingVarId(null);
   }
   function openEditForm(p) {
     setForm({
@@ -184,9 +190,11 @@ export default function AdminPage() {
       availableColors: (p.availableColors || []).join(', '),
       images: (p.images || []).join(', '),
       sizes: (p.sizes || []).join(', '),
+      variations: p.variations || [],
     });
     setEditingId(p.id);
     setShowForm(true);
+    setVarRow(EMPTY_VAR_ROW); setEditingVarId(null);
   }
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -255,6 +263,44 @@ export default function AdminPage() {
     setForm((f) => ({ ...f, storeInventory: f.storeInventory.filter((s) => s.storeId !== id) }));
   }
 
+  function addVarRow() {
+    if (!varRow.name.trim()) return;
+    const v = {
+      varId: editingVarId || Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name: varRow.name.trim(),
+      sku: varRow.sku.trim(),
+      color: varRow.color.trim(),
+      size: varRow.size.trim(),
+      images: csvToArr(varRow.images),
+      stock: Number(varRow.stock) || 0,
+      priceAdjustment: Number(varRow.priceAdjustment) || 0,
+    };
+    setForm((f) => ({
+      ...f,
+      variations: editingVarId
+        ? f.variations.map((x) => (x.varId === editingVarId ? v : x))
+        : [...f.variations, v],
+    }));
+    setVarRow(EMPTY_VAR_ROW);
+    setEditingVarId(null);
+  }
+  function removeVarRow(varId) {
+    setForm((f) => ({ ...f, variations: f.variations.filter((v) => v.varId !== varId) }));
+  }
+  function startEditVar(v) {
+    setVarRow({
+      varId: v.varId,
+      name: v.name,
+      sku: v.sku || '',
+      color: v.color || '',
+      size: v.size || '',
+      images: (v.images || []).join(', '),
+      stock: String(v.stock ?? ''),
+      priceAdjustment: v.priceAdjustment ? String(v.priceAdjustment) : '',
+    });
+    setEditingVarId(v.varId);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.name || !form.description || form.storeInventory.length === 0) {
@@ -273,6 +319,7 @@ export default function AdminPage() {
       availableColors: csvToArr(form.availableColors),
       allowCustomDescription: !!form.allowCustomDescription,
       storeInventory: form.storeInventory,
+      variations: form.variations || [],
     };
     try {
       if (editingId) {
@@ -623,11 +670,12 @@ export default function AdminPage() {
                   </h3>
                   <div className="adm-table">
                     <div className="adm-table-head">
-                      <span>Product</span><span>Type</span><span>Stores</span><span>Price Range</span><span>Stock</span><span>Actions</span>
+                      <span>Product</span><span>Type</span><span>Stores</span><span>Price Range</span><span>Stock</span><span>Variations</span><span>Actions</span>
                     </div>
                     {catProducts(cat).map((p) => {
                       const prices = (p.storeInventory || []).map((s) => s.price);
                       const totalStock = (p.storeInventory || []).reduce((n, s) => n + s.stock, 0);
+                      const varCount = (p.variations || []).length;
                       return (
                         <div key={p.id} className="adm-table-row">
                           <div className="adm-prod-info">
@@ -640,6 +688,7 @@ export default function AdminPage() {
                           <span>{(p.storeInventory || []).length}</span>
                           <span>{prices.length ? `$${Math.min(...prices)} – $${Math.max(...prices)}` : '—'}</span>
                           <span className={totalStock < 5 ? 'adm-low' : ''}>{totalStock}</span>
+                          <span>{varCount > 0 ? <span className="badge badge-blue">{varCount}</span> : <span style={{ color: '#ccc' }}>—</span>}</span>
                           <div className="adm-row-actions">
                             <button className="btn btn-ghost" title="Edit" onClick={() => openEditForm(p)}><Pencil size={13} /></button>
                             <button className="btn btn-ghost" title="Print details" onClick={() => printProduct(p, state.stores)}><Printer size={13} /></button>
@@ -1268,6 +1317,171 @@ export default function AdminPage() {
                   <button type="button" className="btn btn-secondary prod-inv-add-btn" onClick={addStoreRow}>Add</button>
                 </div>
               </div>
+              {/* ── Variations ── */}
+              <div className="store-inventory-section" style={{ marginTop: '1.25rem' }}>
+                <h4>Variations</h4>
+                <p style={{ fontSize: '0.78rem', color: '#777', marginBottom: '0.6rem' }}>
+                  Each variation can have its own photos, stock count, and price adjustment.
+                </p>
+
+                {/* Existing variation rows */}
+                {(form.variations || []).map((v) => (
+                  <div key={v.varId} className="prod-inv-row" style={{ alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {v.images?.[0] && (
+                      <img src={v.images[0]} alt={v.name} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} onError={(e) => { e.target.style.display = 'none'; }} />
+                    )}
+                    <span className="prod-inv-row-store"><strong>{v.name}</strong></span>
+                    {v.color && <span className="badge badge-orange" style={{ fontSize: '0.72rem' }}>{v.color}</span>}
+                    {v.size && <span className="badge badge-green" style={{ fontSize: '0.72rem' }}>{v.size}</span>}
+                    {v.sku && <span style={{ fontSize: '0.73rem', color: '#888' }}>SKU: {v.sku}</span>}
+                    <span className="prod-inv-row-cell">{v.stock} units</span>
+                    {v.priceAdjustment !== 0 && (
+                      <span className="prod-inv-row-cell" style={{ color: v.priceAdjustment > 0 ? '#16a34a' : '#dc2626' }}>
+                        {v.priceAdjustment > 0 ? '+' : ''}${v.priceAdjustment}
+                      </span>
+                    )}
+                    <button type="button" className="btn btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} onClick={() => startEditVar(v)}>
+                      <Pencil size={11} /> Edit
+                    </button>
+                    <button type="button" className="btn btn-ghost adm-del-btn" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }} onClick={() => removeVarRow(v.varId)}>
+                      Remove
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add / edit variation form */}
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '0.8rem 0.9rem', marginTop: '0.5rem', background: '#f9fafb' }}>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.6rem', color: '#374151' }}>
+                    {editingVarId ? 'Edit Variation' : 'Add Variation'}
+                  </p>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Name *</label>
+                      <input
+                        value={varRow.name}
+                        onChange={(e) => setVarRow((r) => ({ ...r, name: e.target.value }))}
+                        placeholder="e.g. Small Red Bouquet"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>SKU</label>
+                      <input
+                        value={varRow.sku}
+                        onChange={(e) => setVarRow((r) => ({ ...r, sku: e.target.value }))}
+                        placeholder="e.g. RR-S-RED"
+                      />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Color</label>
+                      <input
+                        list="var-color-opts"
+                        value={varRow.color}
+                        onChange={(e) => setVarRow((r) => ({ ...r, color: e.target.value }))}
+                        placeholder={csvToArr(form.availableColors)[0] || 'e.g. Red'}
+                      />
+                      <datalist id="var-color-opts">
+                        {csvToArr(form.availableColors).map((c) => <option key={c} value={c} />)}
+                      </datalist>
+                    </div>
+                    <div className="form-group">
+                      <label>Size</label>
+                      <input
+                        list="var-size-opts"
+                        value={varRow.size}
+                        onChange={(e) => setVarRow((r) => ({ ...r, size: e.target.value }))}
+                        placeholder={csvToArr(form.sizes)[0] || 'e.g. Small'}
+                      />
+                      <datalist id="var-size-opts">
+                        {csvToArr(form.sizes).map((s) => <option key={s} value={s} />)}
+                      </datalist>
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Stock</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={varRow.stock}
+                        onChange={(e) => setVarRow((r) => ({ ...r, stock: e.target.value }))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Price Adjustment ($)</label>
+                      <input
+                        type="number"
+                        value={varRow.priceAdjustment}
+                        onChange={(e) => setVarRow((r) => ({ ...r, priceAdjustment: e.target.value }))}
+                        placeholder="+5 or -10"
+                      />
+                    </div>
+                  </div>
+                  {/* Variation photos — label-wrapped input avoids programmatic click issues */}
+                  <div className="form-group">
+                    <label>Variation Photos</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                      {csvToArr(varRow.images).map((url, i) => (
+                        <div key={i} style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
+                          <img
+                            src={url}
+                            alt={`var ${i + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 6, border: '1px solid #e5e7eb' }}
+                            onError={(e) => { e.target.style.opacity = 0.3; }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const kept = csvToArr(varRow.images).filter((_, idx) => idx !== i);
+                              setVarRow((r) => ({ ...r, images: kept.join(', ') }));
+                            }}
+                            style={{ position: 'absolute', top: 3, right: 3, background: 'rgba(220,38,38,0.88)', color: '#fff', border: 'none', borderRadius: '50%', width: 18, height: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ))}
+                      {csvToArr(varRow.images).length === 0 && (
+                        <div style={{ width: 72, height: 72, borderRadius: 8, background: '#f3f4f6', border: '1px dashed #d1d5db', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <ImagesIcon size={22} color="#9ca3af" />
+                        </div>
+                      )}
+                    </div>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.82rem', padding: '0.38rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, background: 'white', fontWeight: 500 }}>
+                      <Upload size={13} /> Add Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = '';
+                          if (!file) return;
+                          try {
+                            const { url } = await uploadApi.single(file);
+                            setVarRow((r) => ({ ...r, images: [...csvToArr(r.images), url].join(', ') }));
+                          } catch (err) {
+                            setBanner({ type: 'error', text: err.message || 'Photo upload failed' });
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+                    <button type="button" className="btn btn-secondary" onClick={addVarRow}>
+                      {editingVarId ? 'Update Variation' : '+ Add Variation'}
+                    </button>
+                    {editingVarId && (
+                      <button type="button" className="btn btn-ghost" onClick={() => { setVarRow(EMPTY_VAR_ROW); setEditingVarId(null); }}>
+                        Cancel
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={busy}>

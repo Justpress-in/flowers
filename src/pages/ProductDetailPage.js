@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useCart } from '../context/CartContext';
@@ -19,12 +19,18 @@ export default function ProductDetailPage() {
 
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
+  const [selectedVarId, setSelectedVarId] = useState('');
   const [activeImg, setActiveImg] = useState(0);
   const [customDesc, setCustomDesc] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const [error, setError] = useState('');
+
+  // Reset gallery to first frame whenever the selected variation changes
+  useEffect(() => {
+    setActiveImg(0);
+  }, [selectedVarId]);
 
   if (!product) {
     return (
@@ -34,8 +40,14 @@ export default function ProductDetailPage() {
     );
   }
 
+  // Variations
+  const variations = product.variations || [];
+  const hasVariations = variations.length > 0;
+  const selectedVar = hasVariations
+    ? (variations.find((v) => v.varId === selectedVarId) || null)
+    : null;
+
   // Auto-pick the cheapest store with enough stock for the requested quantity.
-  // Falls back to any store with stock, then to the cheapest store at all.
   const inventory = product.storeInventory || [];
   const sortedByPrice = [...inventory].sort((a, b) => a.price - b.price);
   const storeEntry =
@@ -44,29 +56,62 @@ export default function ProductDetailPage() {
     sortedByPrice[0] ||
     null;
 
-  const totalStock = inventory.reduce((sum, s) => sum + s.stock, 0);
-  const price = storeEntry ? storeEntry.price : 0;
-  const lineTotal = price * quantity;
+  // Stock: use variation-level stock when a variation is selected
+  const storeStock = inventory.reduce((sum, s) => sum + s.stock, 0);
+  const totalStock = selectedVar !== null
+    ? selectedVar.stock
+    : hasVariations
+      ? variations.reduce((sum, v) => sum + v.stock, 0)
+      : storeStock;
   const isOutOfStock = totalStock === 0;
 
-  const allImages = [product.image, ...(product.images || [])].filter(Boolean);
+  // Price: base store price ± variation adjustment
+  const basePrice = storeEntry ? storeEntry.price : 0;
+  const price = basePrice + (selectedVar?.priceAdjustment || 0);
+  const lineTotal = price * quantity;
+
+  // Gallery: variation images first when a variation is selected
+  const varImages = (selectedVar?.images || []).filter(Boolean);
+  const productImages = [product.image, ...(product.images || [])].filter(Boolean);
+  const allImages = varImages.length > 0
+    ? [...varImages, ...productImages.filter((img) => !varImages.includes(img))]
+    : productImages;
 
   function validate() {
-    if (isOutOfStock || !storeEntry) {
+    if (!storeEntry) {
       setError('Sorry, this item is out of stock.');
       return false;
     }
-    if (storeEntry.stock < quantity) {
-      setError(`Only ${totalStock} available in total — please reduce the quantity.`);
-      return false;
-    }
-    if (product.availableColors.length > 0 && !selectedColor) {
-      setError('Please select a color.');
-      return false;
-    }
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      setError('Please select a size.');
-      return false;
+    if (hasVariations) {
+      if (!selectedVarId) {
+        setError('Please select a variation.');
+        return false;
+      }
+      if (selectedVar && selectedVar.stock < quantity) {
+        setError(`Only ${selectedVar.stock} available for this variation.`);
+        return false;
+      }
+      if (isOutOfStock) {
+        setError('This variation is out of stock.');
+        return false;
+      }
+    } else {
+      if (isOutOfStock) {
+        setError('Sorry, this item is out of stock.');
+        return false;
+      }
+      if (storeEntry.stock < quantity) {
+        setError(`Only ${totalStock} available — please reduce the quantity.`);
+        return false;
+      }
+      if (product.availableColors.length > 0 && !selectedColor) {
+        setError('Please select a color.');
+        return false;
+      }
+      if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+        setError('Please select a size.');
+        return false;
+      }
     }
     setError('');
     return true;
@@ -82,6 +127,7 @@ export default function ProductDetailPage() {
         quantity,
         color: selectedColor,
         size: selectedSize,
+        varId: selectedVarId || undefined,
         customDescription: customDesc,
       });
       setAdded(true);
@@ -151,8 +197,61 @@ export default function ProductDetailPage() {
             </span>
           </div>
 
-          {/* Color Selection */}
-          {product.availableColors.length > 0 && (
+          {/* Variation Selection */}
+          {hasVariations && (
+            <div className="form-group">
+              <label>Choose Variation *</label>
+              <div className="variation-options">
+                {variations.map((v) => {
+                  const adjustedPrice = basePrice + (v.priceAdjustment || 0);
+                  const isSelected = selectedVarId === v.varId;
+                  const oos = v.stock === 0;
+                  return (
+                    <button
+                      key={v.varId}
+                      type="button"
+                      className={`variation-card ${isSelected ? 'selected' : ''} ${oos ? 'oos' : ''}`}
+                      onClick={() => {
+                        if (oos) return;
+                        setSelectedVarId(v.varId);
+                        setSelectedColor(v.color || '');
+                        setSelectedSize(v.size || '');
+                      }}
+                      disabled={oos}
+                    >
+                      {v.images?.[0] ? (
+                        <img
+                          src={v.images[0]}
+                          alt={v.name}
+                          className="variation-card-img"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      ) : (
+                        <div className="variation-card-img-ph" />
+                      )}
+                      <div className="variation-card-body">
+                        <span className="variation-card-name">{v.name}</span>
+                        {(v.color || v.size) && (
+                          <span className="variation-card-attrs">
+                            {[v.color, v.size].filter(Boolean).join(' · ')}
+                          </span>
+                        )}
+                        {adjustedPrice > 0 && (
+                          <span className="variation-card-price">${adjustedPrice}</span>
+                        )}
+                        <span className={`variation-card-stock ${oos ? 'oos' : v.stock < 5 ? 'low' : ''}`}>
+                          {oos ? 'Out of stock' : `${v.stock} left`}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Color Selection — only when no variations */}
+          {!hasVariations && product.availableColors.length > 0 && (
             <div className="form-group">
               <label>Select Color *</label>
               <div className="color-options">
@@ -170,8 +269,8 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Size Selection */}
-          {product.sizes && product.sizes.length > 0 && (
+          {/* Size Selection — only when no variations */}
+          {!hasVariations && product.sizes && product.sizes.length > 0 && (
             <div className="form-group">
               <label><Ruler size={13} style={{ verticalAlign: 'middle', marginRight: '0.3rem' }} />Select Size *</label>
               <div className="size-options">

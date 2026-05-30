@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Flower2, Menu, X, LayoutDashboard, ShoppingCart, User as UserIcon, LogOut, Package, Home, Truck, ChevronDown } from 'lucide-react';
+import { Flower2, Menu, X, LayoutDashboard, ShoppingCart, User as UserIcon, LogOut, Package, Truck, ChevronDown } from 'lucide-react';
 import { useUserAuth } from '../context/UserAuthContext';
 import { useCart } from '../context/CartContext';
 import { settings as settingsApi } from '../api/endpoints';
@@ -80,9 +80,6 @@ export default function Navbar() {
           </Link>
 
           <div className="navbar-top-links">
-            <Link to="/" className={`navbar-top-link ${location.pathname === '/' ? 'active' : ''}`}>
-              <Home size={16} /> <span>Home</span>
-            </Link>
             {trackingLink('navbar-top-link')}
             {cartLink()}
 
@@ -155,7 +152,6 @@ export default function Navbar() {
 
       {/* ── Mobile drawer: everything combined (flat auth, no dropdown) ── */}
       <div className={`navbar-mobile ${menuOpen ? 'open' : ''}`}>
-        <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={closeMenu}>Home</Link>
         {CATEGORY_LINKS.map((l) => (
           l.children ? (
             <React.Fragment key={l.to}>

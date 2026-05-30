@@ -11,7 +11,11 @@ export default function ProductCard({ product }) {
   const baseAtLow = Number(cheapest?.basePrice || 0);
   const discountPct = Number(cheapest?.discountPercent || 0);
   const showStrike = baseAtLow > lowestPrice;
-  const totalStock = product.storeInventory.reduce((sum, s) => sum + s.stock, 0);
+  const variations = product.variations || [];
+  const varStock = variations.reduce((sum, v) => sum + v.stock, 0);
+  const totalStock = variations.length > 0
+    ? varStock
+    : product.storeInventory.reduce((sum, s) => sum + s.stock, 0);
 
   return (
     <div className="card product-card">
@@ -41,6 +45,11 @@ export default function ProductCard({ product }) {
               )}
             </span>
             <span className="product-card-stock">{totalStock > 0 ? `${totalStock} in stock` : 'Out of stock'}</span>
+            {variations.length > 0 && (
+              <span className="product-card-stock" style={{ color: 'var(--primary)', fontWeight: 500 }}>
+                {variations.length} variation{variations.length > 1 ? 's' : ''}
+              </span>
+            )}
           </div>
           <Link to={`/product/${product.id}`} className="btn btn-primary">Order</Link>
         </div>
