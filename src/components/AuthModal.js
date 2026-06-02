@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { X, Mail, Lock, User as UserIcon, Phone, AlertCircle, Flower2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, Mail, Lock, User as UserIcon, Phone, AlertCircle, Flower2, ShieldCheck } from 'lucide-react';
 import { useUserAuth } from '../context/UserAuthContext';
+import { useAuth } from '../context/AuthContext';
 import './AuthModal.css';
 
 export default function AuthModal() {
   const { authModal, closeAuthModal, login, register } = useUserAuth();
+  const { login: adminLogin } = useAuth();
+  const navigate = useNavigate();
+  // mode: 'login' | 'register' | 'admin'
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ email: '', password: '', name: '', phone: '' });
   const [error, setError] = useState('');
@@ -30,6 +35,12 @@ export default function AuthModal() {
     setError('');
     setBusy(true);
     try {
+      if (mode === 'admin') {
+        await adminLogin(form.email, form.password);
+        closeAuthModal();
+        navigate('/admin');
+        return;
+      }
       if (mode === 'login') {
         await login(form.email, form.password);
       } else {
@@ -59,27 +70,35 @@ export default function AuthModal() {
           <span>BloomNest</span>
         </div>
 
-        <div className="auth-tabs">
-          <button
-            type="button"
-            className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-            onClick={() => { setMode('login'); setError(''); }}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
-            onClick={() => { setMode('register'); setError(''); }}
-          >
-            Create Account
-          </button>
-        </div>
+        {mode !== 'admin' ? (
+          <div className="auth-tabs">
+            <button
+              type="button"
+              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
+              onClick={() => { setMode('login'); setError(''); }}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              className={`auth-tab ${mode === 'register' ? 'active' : ''}`}
+              onClick={() => { setMode('register'); setError(''); }}
+            >
+              Create Account
+            </button>
+          </div>
+        ) : (
+          <div className="auth-admin-banner">
+            <ShieldCheck size={16} /> <span>Admin Sign In</span>
+          </div>
+        )}
 
         <p className="auth-subtitle">
-          {mode === 'login'
-            ? 'Sign in to continue with your order'
-            : 'Create an account to save your cart and orders'}
+          {mode === 'admin'
+            ? 'Sign in to the admin dashboard'
+            : mode === 'login'
+              ? 'Sign in to continue with your order'
+              : 'Create an account to save your cart and orders'}
         </p>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -143,17 +162,31 @@ export default function AuthModal() {
           )}
 
           <button type="submit" className="auth-submit" disabled={busy}>
-            {busy ? 'Please wait…' : (mode === 'login' ? 'Sign In' : 'Create Account')}
+            {busy ? 'Please wait…' : (mode === 'login' ? 'Sign In' : mode === 'register' ? 'Create Account' : 'Admin Sign In')}
           </button>
         </form>
 
         <p className="auth-switch">
-          {mode === 'login' ? (
+          {mode === 'login' && (
             <>New to BloomNest? <button type="button" onClick={() => { setMode('register'); setError(''); }}>Create an account</button></>
-          ) : (
+          )}
+          {mode === 'register' && (
             <>Already have an account? <button type="button" onClick={() => { setMode('login'); setError(''); }}>Sign in</button></>
           )}
+          {mode === 'admin' && (
+            <>Not staff? <button type="button" onClick={() => { setMode('login'); setError(''); }}>Customer sign in</button></>
+          )}
         </p>
+
+        {mode !== 'admin' ? (
+          <button
+            type="button"
+            className="auth-admin-link"
+            onClick={() => { setMode('admin'); setError(''); }}
+          >
+            <ShieldCheck size={14} /> Sign in as admin
+          </button>
+        ) : null}
       </div>
     </div>
   );

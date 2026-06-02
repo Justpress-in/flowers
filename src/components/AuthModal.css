@@ -155,3 +155,41 @@
   padding: 0;
 }
 .auth-switch button:hover { text-decoration: underline; }
+
+/* Admin sign-in mode */
+.auth-admin-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.8rem;
+  margin: 0.4rem 0 0.6rem;
+  background: #fdf0eb;
+  color: var(--primary, #c1440e);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.auth-admin-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: none;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.auth-admin-link:hover {
+  color: var(--primary, #c1440e);
+  border-color: var(--primary, #c1440e);
+  background: #fdf0eb;
+}
