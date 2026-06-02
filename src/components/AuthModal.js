@@ -149,7 +149,7 @@ export default function AuthModal() {
                 onChange={handleChange}
                 placeholder={mode === 'register' ? 'At least 6 characters' : 'Enter your password'}
                 required
-                minLength={6}
+                minLength={mode === 'register' ? 6 : undefined}
                 autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
               />
             </div>
